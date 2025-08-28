@@ -2,7 +2,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   /* ===== Versión ===== */
-  const VERSION = "v1.1";
+  const VERSION = "v1.2";
   const versionEl = document.getElementById('versionLabel');
   if (versionEl) versionEl.textContent = VERSION;
 
@@ -36,11 +36,27 @@ document.addEventListener('DOMContentLoaded', () => {
   let puedeJugar = false;  // bloquea input durante reproducción
   let tiempos = { on: 550, off: 250 }; // default "medio"
 
-  /* ===== Util ===== */
+  /* ===== Utils ===== */
   const el = (s) => document.querySelector(s);
   const delay = (ms) => new Promise(r => setTimeout(r, ms));
-  const randomColor = () => COLORES[Math.floor(Math.random()*COLORES.length)];
   const setTexto = (n, t) => n && (n.textContent = String(t));
+
+  // RNG robusto + anti-repetición consecutiva
+  function rngInt(max) {
+    if (window.crypto && window.crypto.getRandomValues) {
+      const arr = new Uint32Array(1);
+      window.crypto.getRandomValues(arr);
+      return arr[0] % max;
+    }
+    return Math.floor(Math.random() * max);
+  }
+  function pickNextColor(prev = null) {
+    if (prev == null) return COLORES[rngInt(COLORES.length)];
+    let idx = rngInt(COLORES.length - 1);
+    const prevIdx = COLORES.indexOf(prev);
+    if (idx >= prevIdx) idx++;
+    return COLORES[idx];
+  }
 
   function setVelocidad(v){
     if (v==='lento')  tiempos = { on: 700, off: 350 };
@@ -104,6 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function reproducirSecuencia(){
     puedeJugar = false;
     tablero.setAttribute('aria-busy','true');
+    setTexto(mensajeEl, 'Observá la secuencia…');
     for (const c of secuencia){ await iluminar(c); }
     tablero.removeAttribute('aria-busy');
     puedeJugar = true;
@@ -123,8 +140,8 @@ document.addEventListener('DOMContentLoaded', () => {
   async function nuevoNivel(){
     idxJugador = 0;
     nivel++;
-    setTexto(mensajeEl, 'Observá la secuencia…');
-    secuencia.push(randomColor());
+    // agregar color evitando repetición consecutiva
+    secuencia.push(pickNextColor(secuencia[secuencia.length - 1] ?? null));
     actualizarUI();
     await delay(600);
     await reproducirSecuencia();
