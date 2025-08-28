@@ -1,0 +1,65 @@
+:root {
+  --rojo: #ef4444;
+  --verde: #22c55e;
+  --azul: #3b82f6;
+  --amarillo: #facc15;
+  --focus: #0ea5e9;
+  --bg: #0b0b0b;
+  --fg: #f5f5f5;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  text-align: center;
+}
+
+.wrap { max-width: 600px; margin: auto; padding: 1rem; }
+
+.header h1 { font-size: 1.8rem; margin: .5rem 0; }
+.intro { margin-bottom: 1rem; }
+
+.btn {
+  padding: .8rem 1.2rem;
+  border: none;
+  border-radius: .8rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+.btn.principal { background: var(--verde); color: #000; }
+.btn.secundario { background: var(--azul); color: #fff; }
+
+.tablero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 2rem auto;
+  max-width: 300px;
+}
+
+.color {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: .8rem;
+  border: 3px solid #333;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity .2s;
+}
+.color:focus-visible { outline: 3px solid var(--focus); }
+.color.activo { opacity: 1; transform: scale(1.05); }
+
+.color.rojo { background: var(--rojo); }
+.color.verde { background: var(--verde); }
+.color.azul { background: var(--azul); }
+.color.amarillo { background: var(--amarillo); }
+
+.estado { font-size: 1.2rem; margin-top: 1rem; }
+
+.mini-credit {
+  margin-top: 2rem;
+  font-size: .8rem;
+  color: #aaa;
+}

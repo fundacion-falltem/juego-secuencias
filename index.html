@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="description" content="Juego cognitivo accesible tipo Simón: repite la secuencia de colores."/>
+  <meta name="theme-color" content="#0b0b0b"/>
+  <meta name="color-scheme" content="dark light"/>
+
+  <title>Secuencia de colores — Juegos Cognitivos</title>
+  <link rel="stylesheet" href="./styles.css?v=1.0">
+</head>
+
+<body>
+  <a href="#juego" class="skip">Saltar directamente al juego</a>
+
+  <main class="wrap">
+    <header class="header">
+      <h1>Secuencia de colores</h1>
+      <p class="intro">Observá la secuencia de colores y repetila en el mismo orden.</p>
+      <button id="btnComenzar" class="btn principal">Comenzar</button>
+      <button id="btnReiniciar" class="btn secundario" hidden>Volver a jugar</button>
+    </header>
+
+    <section id="juego" class="juego">
+      <div class="tablero">
+        <button class="color rojo" data-color="rojo"></button>
+        <button class="color verde" data-color="verde"></button>
+        <button class="color azul" data-color="azul"></button>
+        <button class="color amarillo" data-color="amarillo"></button>
+      </div>
+      <p id="estado" class="estado">Nivel: 0</p>
+    </section>
+
+    <footer class="mini-credit">
+      <p>
+        <strong class="mini-label">Créditos y aviso:</strong>
+        Desarrollado para <a href="https://falltem.org/" target="_blank">FALLTEM</a> •
+        Código abierto (MIT) • Actividad lúdica, no médica •
+        Versión <span id="versionLabel">v1.0</span>
+      </p>
+    </footer>
+  </main>
+
+  <script src="./app.js?v=1.0" defer></script>
+</body>
+</html>
