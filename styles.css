@@ -182,8 +182,7 @@ html.muy-grande body{ --fs-base: clamp(20px, 1.3vw + 16px, 24px) }
   font-weight: 900;
   line-height: 1;
   pointer-events: none;
-  /* buena visibilidad en ambos temas */
-  color: #111; 
+  color: #111;
   text-shadow:
     0 0 4px rgba(255,255,255,.95),
     0 0 2px rgba(0,0,0,.65),
