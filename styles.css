@@ -169,3 +169,33 @@ html.muy-grande body{ --fs-base: clamp(20px, 1.3vw + 16px, 24px) }
 .btn-sonido[aria-pressed="false"] {
   background: #555;
 }
+
+/* ===== Modo daltónico: símbolos sobre cada color ===== */
+[data-colorblind="on"] .color{
+  position: relative;
+}
+[data-colorblind="on"] .color::after{
+  content: "";
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  font-size: clamp(28px, 9vw, 60px);
+  font-weight: 900;
+  line-height: 1;
+  pointer-events: none;
+  /* buena visibilidad en ambos temas */
+  color: #111; 
+  text-shadow:
+    0 0 4px rgba(255,255,255,.95),
+    0 0 2px rgba(0,0,0,.65),
+    0 0 1px rgba(0,0,0,.65);
+}
+[data-theme="light"][data-colorblind="on"] .color::after{
+  color: #fff;
+  text-shadow:
+    0 0 4px rgba(0,0,0,.9),
+    0 0 2px rgba(0,0,0,.9);
+}
+[data-colorblind="on"] .color.rojo::after{ content: "▲"; }     /* triángulo */
+[data-colorblind="on"] .color.verde::after{ content: "●"; }    /* círculo   */
+[data-colorblind="on"] .color.azul::after{ content: "■"; }     /* cuadrado  */
+[data-colorblind="on"] .color.amarillo::after{ content: "◆"; } /* rombo     */

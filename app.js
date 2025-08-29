@@ -340,3 +340,26 @@ document.addEventListener('DOMContentLoaded', () => {
   cargarPreferencias();
   actualizarUI();
 });
+
+// ----- Modo daltónico (toggle + persistencia) -----
+const cbBtn = document.getElementById('cbToggle');
+
+function applyColorblind(on){
+  document.documentElement.setAttribute('data-colorblind', on ? 'on' : 'off');
+  if (cbBtn){
+    cbBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    cbBtn.textContent = on ? 'Modo daltónico: ON' : 'Modo daltónico';
+  }
+  try { localStorage.setItem('seq_cb', on ? '1' : '0'); } catch {}
+}
+
+// Restaurar al cargar
+let cbPref = false;
+try { cbPref = localStorage.getItem('seq_cb') === '1'; } catch {}
+applyColorblind(cbPref);
+
+// Click
+cbBtn?.addEventListener('click', ()=>{
+  const now = document.documentElement.getAttribute('data-colorblind') !== 'on';
+  applyColorblind(now);
+});
