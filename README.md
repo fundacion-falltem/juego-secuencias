@@ -42,6 +42,10 @@ Es un sitio **estático** (HTML/CSS/JS).
 Para probar localmente, abrí `index.html` en el navegador.  
 Para publicar, usá GitHub Pages (branch `main`).
 
+## Sonidos utilizados
+ descargados de [Pixabay Sound Effects](https://pixabay.com/sound-effects/), bajo licencia Pixabay (uso libre).
+
+
 ## Licencia
 Este proyecto se distribuye bajo licencia **MIT** (ver `LICENSE.txt`).
 

@@ -2,7 +2,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   /* ===== Versión ===== */
-  const VERSION = "v1.2";
+  const VERSION = "v1.3";
   const versionEl = document.getElementById('versionLabel');
   if (versionEl) versionEl.textContent = VERSION;
 
@@ -20,12 +20,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const tablero    = document.querySelector('.tablero');
   const botones    = document.querySelectorAll('.color');
 
-  const nivelEl    = document.getElementById('nivel');
-  const pasoEl     = document.getElementById('paso');
+  const nivelEl      = document.getElementById('nivel');
+  const pasoEl       = document.getElementById('paso');
   const pasosTotalEl = document.getElementById('pasosTotal');
-  const mejorEl    = document.getElementById('mejor');
-  const pbFill     = document.getElementById('pbFill');
-  const mensajeEl  = document.getElementById('mensaje');
+  const mejorEl      = document.getElementById('mejor');
+  const pbFill       = document.getElementById('pbFill');
+  const mensajeEl    = document.getElementById('mensaje');
+
+  // Sonidos (aseguramos no usar optional chaining en asignaciones)
+  const sndOk  = document.getElementById('sndOk');
+  const sndBad = document.getElementById('sndBad');
+  if (sndOk)  sndOk.volume  = 0.5;
+  if (sndBad) sndBad.volume = 0.45;
 
   /* ===== Estado ===== */
   const COLORES = ['rojo','verde','azul','amarillo'];
@@ -35,11 +41,12 @@ document.addEventListener('DOMContentLoaded', () => {
   let mejor = 0;
   let puedeJugar = false;  // bloquea input durante reproducción
   let tiempos = { on: 550, off: 250 }; // default "medio"
+  let audioDesbloqueado = false;
 
   /* ===== Utils ===== */
   const el = (s) => document.querySelector(s);
   const delay = (ms) => new Promise(r => setTimeout(r, ms));
-  const setTexto = (n, t) => n && (n.textContent = String(t));
+  const setTexto = (n, t) => { if (n) n.textContent = String(t); };
 
   // RNG robusto + anti-repetición consecutiva
   function rngInt(max) {
@@ -66,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function aplicarTam(){
-    const muy = selTam?.value === 'muy-grande';
+    const muy = selTam && selTam.value === 'muy-grande';
     document.documentElement.classList.toggle('muy-grande', !!muy);
     try{ localStorage.setItem('seq_tamano', muy ? 'muy-grande' : 'grande'); }catch{}
   }
@@ -100,12 +107,35 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ===== Ayuda (modal) ===== */
-  function openAbout(){ aboutModal?.setAttribute('aria-hidden','false'); aboutClose?.focus(); }
-  function closeAbout(){ aboutModal?.setAttribute('aria-hidden','true'); }
-  aboutBtn?.addEventListener('click', openAbout);
-  aboutClose?.addEventListener('click', closeAbout);
-  aboutModal?.addEventListener('click', (e)=>{ if(e.target===aboutModal) closeAbout(); });
+  function openAbout(){ if (aboutModal) { aboutModal.setAttribute('aria-hidden','false'); if (aboutClose) aboutClose.focus(); } }
+  function closeAbout(){ if (aboutModal) aboutModal.setAttribute('aria-hidden','true'); }
+  if (aboutBtn)   aboutBtn.addEventListener('click', openAbout);
+  if (aboutClose) aboutClose.addEventListener('click', closeAbout);
+  if (aboutModal) aboutModal.addEventListener('click', (e)=>{ if(e.target===aboutModal) closeAbout(); });
   document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeAbout(); });
+
+  /* ===== Desbloqueo de audio (iOS/Safari) ===== */
+  function tryUnlockAudio(){
+    if (audioDesbloqueado) return;
+    const a = [sndOk, sndBad].filter(Boolean);
+    a.forEach(elm=>{
+      try{
+        const p = elm.play();
+        if (p && typeof p.then === 'function') {
+          p.then(()=>{ elm.pause(); elm.currentTime = 0; }).catch(()=>{});
+        } else {
+          elm.pause(); elm.currentTime = 0;
+        }
+      }catch{}
+    });
+    audioDesbloqueado = true;
+    document.removeEventListener('touchstart', tryUnlockAudio);
+    document.removeEventListener('click', tryUnlockAudio);
+    document.removeEventListener('keydown', tryUnlockAudio);
+  }
+  document.addEventListener('touchstart', tryUnlockAudio, { once:true });
+  document.addEventListener('click', tryUnlockAudio, { once:true });
+  document.addEventListener('keydown', tryUnlockAudio, { once:true });
 
   /* ===== Reproducción ===== */
   async function iluminar(color){
@@ -141,7 +171,8 @@ document.addEventListener('DOMContentLoaded', () => {
     idxJugador = 0;
     nivel++;
     // agregar color evitando repetición consecutiva
-    secuencia.push(pickNextColor(secuencia[secuencia.length - 1] ?? null));
+    const previo = secuencia.length ? secuencia[secuencia.length - 1] : null;
+    secuencia.push(pickNextColor(previo));
     actualizarUI();
     await delay(600);
     await reproducirSecuencia();
@@ -150,27 +181,62 @@ document.addEventListener('DOMContentLoaded', () => {
   function finDePartida(){
     puedeJugar = false;
     setTexto(mensajeEl, `❌ Error. Alcanzaste el nivel ${nivel}.`);
+    try { if (sndBad) { sndBad.currentTime = 0; sndBad.play().catch(()=>{}); } } catch {}
     btnReiniciar.hidden = false;
     btnComenzar.hidden = true;
   }
 
   function victoriaParcial(){
-    // Completó correctamente el nivel actual
-    if (nivel > mejor){
-      mejor = nivel;
-      setTexto(mejorEl, mejor);
-      try{ localStorage.setItem('seq_mejor', String(mejor)); }catch{}
-    }
-    setTexto(mensajeEl, '✅ ¡Bien! Nueva ronda…');
-    nuevoNivel();
+  // Mejora de récord
+  if (nivel > mejor){
+    mejor = nivel;
+    setTexto(mejorEl, mejor);
+    try{ localStorage.setItem('seq_mejor', String(mejor)); }catch{}
   }
+
+  setTexto(mensajeEl, '✅ ¡Bien! Nueva ronda…');
+
+  // Avanzar cuando termine el audio (o con timeout de respaldo)
+  const startNext = ()=>{ nuevoNivel(); };
+  let avanzado = false;
+
+  function avanzarUnaVez(){
+    if (avanzado) return;
+    avanzado = true;
+    if (sndOk) { sndOk.removeEventListener('ended', avanzarUnaVez); }
+    startNext();
+  }
+
+  try{
+    if (sndOk){
+      sndOk.currentTime = 0;
+      const p = sndOk.play();
+      if (p && typeof p.then === 'function'){
+        p.catch(()=>{}); // silencioso si falla
+      }
+      // Cuando termina el audio → siguiente nivel
+      sndOk.addEventListener('ended', avanzarUnaVez, { once:true });
+
+      // Respaldo: si por algún motivo no llega 'ended' (Safari edge),
+      // usamos la duración del audio o 800 ms mínimo.
+      const espera = Math.max(800, (sndOk.duration || 0.8) * 1000);
+      setTimeout(avanzarUnaVez, espera);
+      return;
+    }
+  }catch{}
+
+  // Si no hay audio o falló, avanzamos rápido
+  setTimeout(avanzarUnaVez, 800);
+}
 
   /* ===== Interacción jugador ===== */
   function pulsar(color){
     if (!puedeJugar) return;
     const btn = el(`.color.${color}`);
-    btn?.classList.add('activo');
-    setTimeout(()=>btn?.classList.remove('activo'), 120);
+    if (btn){
+      btn.classList.add('activo');
+      setTimeout(()=>btn.classList.remove('activo'), 120);
+    }
 
     // registrar
     idxJugador++;
@@ -181,9 +247,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ¿completó el nivel?
     if (idxJugador === secuencia.length){
-      puedeJugar = false;
-      setTimeout(victoriaParcial, 600);
-    }
+  puedeJugar = false;
+  // pequeño margen para que termine la última iluminación
+  setTimeout(victoriaParcial, 150);
+}
   }
 
   botones.forEach(b=>{
@@ -202,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
     idxJugador = 0;
     nivel = 0;
     setTexto(mensajeEl, '');
-    pbFill && (pbFill.style.width = '0%');
+    if (pbFill) pbFill.style.width = '0%';
 
     btnComenzar.hidden = true;
     btnReiniciar.hidden = true;
@@ -211,12 +278,12 @@ document.addEventListener('DOMContentLoaded', () => {
     await nuevoNivel();
   }
 
-  btnComenzar?.addEventListener('click', comenzar);
-  btnReiniciar?.addEventListener('click', comenzar);
+  if (btnComenzar) btnComenzar.addEventListener('click', comenzar);
+  if (btnReiniciar) btnReiniciar.addEventListener('click', comenzar);
 
   /* ===== Preferencias / tema ===== */
-  selTam?.addEventListener('change', aplicarTam);
-  selVel?.addEventListener('change', ()=> setVelocidad(selVel.value));
+  if (selTam) selTam.addEventListener('change', aplicarTam);
+  if (selVel) selVel.addEventListener('change', ()=> setVelocidad(selVel.value));
 
   (function initTheme(){
     let mode='dark';
@@ -228,12 +295,14 @@ document.addEventListener('DOMContentLoaded', () => {
     applyTheme(mode);
   })();
 
-  themeBtn?.addEventListener('click', ()=>{
-    const current = document.documentElement.getAttribute('data-theme') || 'dark';
-    const next = current === 'dark' ? 'light' : 'dark';
-    try { localStorage.setItem('theme', next); } catch {}
-    applyTheme(next);
-  });
+  if (themeBtn){
+    themeBtn.addEventListener('click', ()=>{
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      try { localStorage.setItem('theme', next); } catch {}
+      applyTheme(next);
+    });
+  }
 
   /* ===== Init ===== */
   cargarPreferencias();

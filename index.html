@@ -8,14 +8,27 @@
   <meta name="color-scheme" content="dark light"/>
   <meta name="referrer" content="strict-origin-when-cross-origin"/>
 
+  <!-- CSP: habilitamos audio local -->
+  <meta http-equiv="Content-Security-Policy"
+      content="default-src 'self';
+               script-src 'self' 'unsafe-inline';
+               style-src 'self' 'unsafe-inline';
+               font-src 'self';
+               img-src 'self' data:;
+               media-src 'self';
+               connect-src 'self';
+               object-src 'none';
+               base-uri 'none';
+               form-action 'none'">
+
   <title>Secuencia de colores — Juegos Cognitivos</title>
-  <link rel="stylesheet" href="./styles.css?v=1.1">
+  <link rel="stylesheet" href="./styles.css?v=1.3">
 </head>
 
 <body>
   <a href="#juego" class="skip">Saltar directamente al juego</a>
 
-  <!-- Botón de ayuda (?) fijo -->
+  <!-- Botón ayuda -->
   <div class="fixed-top-right">
     <button id="aboutBtn" class="btn-ayuda" type="button" aria-haspopup="dialog" aria-controls="aboutModal" aria-expanded="false" aria-label="¿Por qué este juego?">?</button>
   </div>
@@ -83,11 +96,16 @@
         Desarrollado por <a href="https://falltem.org/" target="_blank" rel="noopener noreferrer">FALLTEM</a>
         • Código abierto (MIT) • Actividad lúdica; no es práctica médica
         <br><small>Versión: <strong id="versionLabel"></strong></small>
+        <br><small>🔊 Sonidos: <a href="https://pixabay.com/sound-effects/" target="_blank" rel="noopener">Pixabay Sound Effects</a> (licencia Pixabay)</small>
       </p>
     </footer>
   </main>
 
+  <!-- Sonidos -->
+  <audio id="sndOk"  preload="auto" src="./sounds/success-answer.mp3"></audio>
+  <audio id="sndBad" preload="auto" src="./sounds/wrong-answer.mp3"></audio>
+
   <noscript><p style="margin:1rem">Este juego necesita JavaScript para funcionar.</p></noscript>
-  <script src="./app.js?v=1.1" defer></script>
+  <script src="./app.js?v=1.3" defer></script>
 </body>
 </html>
