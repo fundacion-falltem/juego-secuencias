@@ -2,32 +2,35 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   /* ===== Versión ===== */
-  const VERSION = "v1.3";
+  const VERSION = "v1.6.3";
   const versionEl = document.getElementById('versionLabel');
   if (versionEl) versionEl.textContent = VERSION;
 
   /* ===== Refs ===== */
-  const btnComenzar  = document.getElementById('btnComenzar');
-  const btnReiniciar = document.getElementById('btnReiniciar');
-  const themeBtn     = document.getElementById('themeToggle');
-  const selTam       = document.getElementById('tamano');
-  const selVel       = document.getElementById('velocidad');
+  const btnComenzar   = document.getElementById('btnComenzar');
+  const btnReiniciar  = document.getElementById('btnReiniciar');
+  const themeBtn      = document.getElementById('themeToggle');
+  const selTam        = document.getElementById('tamano');
+  const selVel        = document.getElementById('velocidad');
 
-  const aboutBtn   = document.getElementById('aboutBtn');
-  const aboutModal = document.getElementById('aboutModal');
-  const aboutClose = document.getElementById('aboutClose');
+  const aboutBtn      = document.getElementById('aboutBtn');
+  const aboutModal    = document.getElementById('aboutModal');
+  const aboutClose    = document.getElementById('aboutClose');
 
-  const tablero    = document.querySelector('.tablero');
-  const botones    = document.querySelectorAll('.color');
+  const tablero       = document.querySelector('.tablero');
+  const botones       = document.querySelectorAll('.color');
 
-  const nivelEl      = document.getElementById('nivel');
-  const pasoEl       = document.getElementById('paso');
-  const pasosTotalEl = document.getElementById('pasosTotal');
-  const mejorEl      = document.getElementById('mejor');
-  const pbFill       = document.getElementById('pbFill');
-  const mensajeEl    = document.getElementById('mensaje');
+  const nivelEl       = document.getElementById('nivel');
+  const pasoEl        = document.getElementById('paso');
+  const pasosTotalEl  = document.getElementById('pasosTotal');
+  const mejorEl       = document.getElementById('mejor');
+  const pbFill        = document.getElementById('pbFill');
+  const mensajeEl     = document.getElementById('mensaje');
 
-  // Sonidos (aseguramos no usar optional chaining en asignaciones)
+  // Botón flotante de sonido (🔊/🔇)
+  const soundBtn      = document.getElementById('soundToggle');
+
+  // Sonidos
   const sndOk  = document.getElementById('sndOk');
   const sndBad = document.getElementById('sndBad');
   if (sndOk)  sndOk.volume  = 0.5;
@@ -39,9 +42,36 @@ document.addEventListener('DOMContentLoaded', () => {
   let idxJugador = 0;
   let nivel = 0;
   let mejor = 0;
-  let puedeJugar = false;  // bloquea input durante reproducción
+  let puedeJugar = false;   // bloquea input durante reproducción
   let tiempos = { on: 550, off: 250 }; // default "medio"
   let audioDesbloqueado = false;
+
+  // Sonido: estado global y helpers
+  let soundOn = true;
+  try { soundOn = (localStorage.getItem('soundOn') !== '0'); } catch {}
+
+  function updateSoundButton(){
+    if (!soundBtn) return;
+    soundBtn.textContent = soundOn ? '🔊' : '🔇';
+    soundBtn.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+    soundBtn.setAttribute('aria-label', soundOn ? 'Sonido activado' : 'Sonido desactivado');
+  }
+
+  function playSound(audio){
+    if (!audio || !soundOn) return;
+    try {
+      audio.currentTime = 0;
+      const p = audio.play();
+      if (p && typeof p.then === 'function') p.catch(()=>{});
+    } catch {}
+  }
+
+  function stopAllSounds(){
+    [sndOk, sndBad].forEach(a=>{
+      if (!a) return;
+      try { a.pause(); } catch {}
+    });
+  }
 
   /* ===== Utils ===== */
   const el = (s) => document.querySelector(s);
@@ -104,6 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
       mejor = isNaN(m)?0:m;
       setTexto(mejorEl, mejor);
     }catch{}
+    updateSoundButton();
   }
 
   /* ===== Ayuda (modal) ===== */
@@ -181,53 +212,44 @@ document.addEventListener('DOMContentLoaded', () => {
   function finDePartida(){
     puedeJugar = false;
     setTexto(mensajeEl, `❌ Error. Alcanzaste el nivel ${nivel}.`);
-    try { if (sndBad) { sndBad.currentTime = 0; sndBad.play().catch(()=>{}); } } catch {}
+    playSound(sndBad);
+    if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
     btnReiniciar.hidden = false;
     btnComenzar.hidden = true;
   }
 
   function victoriaParcial(){
-  // Mejora de récord
-  if (nivel > mejor){
-    mejor = nivel;
-    setTexto(mejorEl, mejor);
-    try{ localStorage.setItem('seq_mejor', String(mejor)); }catch{}
-  }
-
-  setTexto(mensajeEl, '✅ ¡Bien! Nueva ronda…');
-
-  // Avanzar cuando termine el audio (o con timeout de respaldo)
-  const startNext = ()=>{ nuevoNivel(); };
-  let avanzado = false;
-
-  function avanzarUnaVez(){
-    if (avanzado) return;
-    avanzado = true;
-    if (sndOk) { sndOk.removeEventListener('ended', avanzarUnaVez); }
-    startNext();
-  }
-
-  try{
-    if (sndOk){
-      sndOk.currentTime = 0;
-      const p = sndOk.play();
-      if (p && typeof p.then === 'function'){
-        p.catch(()=>{}); // silencioso si falla
-      }
-      // Cuando termina el audio → siguiente nivel
-      sndOk.addEventListener('ended', avanzarUnaVez, { once:true });
-
-      // Respaldo: si por algún motivo no llega 'ended' (Safari edge),
-      // usamos la duración del audio o 800 ms mínimo.
-      const espera = Math.max(800, (sndOk.duration || 0.8) * 1000);
-      setTimeout(avanzarUnaVez, espera);
-      return;
+    // récord
+    if (nivel > mejor){
+      mejor = nivel;
+      setTexto(mejorEl, mejor);
+      try{ localStorage.setItem('seq_mejor', String(mejor)); }catch{}
     }
-  }catch{}
 
-  // Si no hay audio o falló, avanzamos rápido
-  setTimeout(avanzarUnaVez, 800);
-}
+    setTexto(mensajeEl, '✅ ¡Bien! Nueva ronda…');
+    if (navigator.vibrate) navigator.vibrate(40);
+
+    let avanzado = false;
+    const avanzarUnaVez = ()=>{ if (avanzado) return; avanzado = true; nuevoNivel(); };
+
+    // Respeta el toggle de sonido: si hay sonido, sincroniza con el audio
+    if (soundOn && sndOk){
+      try{
+        sndOk.currentTime = 0;
+        const p = sndOk.play();
+        if (p && typeof p.then === 'function') p.catch(()=>{});
+        sndOk.addEventListener('ended', avanzarUnaVez, { once:true });
+
+        // Respaldo por si 'ended' no dispara
+        const espera = Math.max(800, (sndOk.duration || 0.8) * 1000);
+        setTimeout(avanzarUnaVez, espera);
+        return;
+      }catch{}
+    }
+
+    // Silenciado o sin audio: avanzar con pequeño delay
+    setTimeout(avanzarUnaVez, 800);
+  }
 
   /* ===== Interacción jugador ===== */
   function pulsar(color){
@@ -247,10 +269,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ¿completó el nivel?
     if (idxJugador === secuencia.length){
-  puedeJugar = false;
-  // pequeño margen para que termine la última iluminación
-  setTimeout(victoriaParcial, 150);
-}
+      puedeJugar = false;
+      // pequeño margen para que termine la última iluminación
+      setTimeout(victoriaParcial, 150);
+    }
   }
 
   botones.forEach(b=>{
@@ -280,6 +302,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnComenzar) btnComenzar.addEventListener('click', comenzar);
   if (btnReiniciar) btnReiniciar.addEventListener('click', comenzar);
+
+  // Toggle sonido (ícono + aria-label) y cortar al instante si se silencia
+  if (soundBtn){
+    soundBtn.addEventListener('click', ()=>{
+      soundOn = !soundOn;
+      try { localStorage.setItem('soundOn', soundOn ? '1' : '0'); } catch {}
+      updateSoundButton();
+      if (!soundOn) stopAllSounds();
+    });
+  }
 
   /* ===== Preferencias / tema ===== */
   if (selTam) selTam.addEventListener('change', aplicarTam);
