@@ -1,49 +1,80 @@
-/* ===== Tema accesible (Simón) ===== */
+/* ======================================================
+   FALLTEM — Secuencias (Simón) — tema unificado
+   - Mantiene tus clases actuales (sin tocar HTML/JS)
+   - Montserrat + paleta de marca
+   - Light por defecto, Dark opcional con [data-theme="dark"]
+   ====================================================== */
+
+/* ===== Tokens / Tema base ===== */
 :root{
   color-scheme: light dark;
   --fs-base: clamp(18px, 1.2vw + 14px, 22px);
   --space: clamp(12px, 1vw + 8px, 18px);
-  --font: "Nunito", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 
-  /* Dark */
-  --bg:#0b0b0b; --fg:#f5f5f5; --muted:#cfcfcf;
-  --card:#171717; --border:#2a2a2a;
-  --focus:#0ea5e9;
+  /* Tipografía */
+  --font: "Montserrat", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 
-  /* Colores del tablero */
-  --rojo:#ef4444; --verde:#22c55e; --azul:#3b82f6; --amarillo:#facc15;
+  /* Superficies */
+  --bg:#f8fbf4; --fg:#1b1b1b; --muted:#50380b;
+  --card:#ffffff; --border:#e5e7eb;
+
+  /* Marca */
+  --accent:#99cd68;     /* verde principal (botón primario) */
+  --accent-2:#5fcbe0;   /* celeste (foco/acciones secundarias) */
+  --warning:#e8b75b;    /* amarillo de marca */
+  --focus: var(--accent-2);
 
   /* Botones */
-  --btn-primary-bg:#22c55e; --btn-primary-fg:#0b0b0b;
-  --btn-sec-bg:#0ea5e9;     --btn-sec-fg:#0b0b0b;
+  --btn-primary-bg: var(--accent);  --btn-primary-fg:#08340f;
+  --btn-sec-bg: var(--accent-2);    --btn-sec-fg:#072a32;
+
+  /* Tablero (pads) — tonos amables, buen contraste en light/dark */
+  --verde:#9edc7a;
+  --rojo:#f28b82;
+  --azul:#7ecdf2;
+  --amarillo:#f7d774;
 }
 
-[data-theme="light"]{
-  --bg:#ffffff; --fg:#111111; --muted:#374151;
-  --card:#ffffff; --border:#e5e7eb; --focus:#1d4ed8;
-  --btn-sec-bg:#0284c7; --btn-sec-fg:#ffffff;
+[data-theme="dark"]{
+  --bg:#0b0b0b; --fg:#f5f5f5; --muted:#cfcfcf;
+  --card:#171717; --border:#2a2a2a;
+
+  --btn-primary-bg: var(--accent); --btn-primary-fg:#0a0a0a;
+  --btn-sec-bg: var(--accent-2);   --btn-sec-fg:#0a0a0a;
+
+  /* pads se ven bien también en dark */
 }
 
-*{box-sizing:border-box}
-html,body{height:100%}
-html{-webkit-text-size-adjust:100%; text-size-adjust:100%}
+/* ===== Base ===== */
+*{ box-sizing:border-box }
+html,body{ height:100% }
+html{ -webkit-text-size-adjust:100%; text-size-adjust:100% }
 body{
   margin:0; background:var(--bg); color:var(--fg);
-  font-family:var(--font); font-size:var(--fs-base); line-height:1.6;
+  font-family:var(--font); font-size:var(--fs-base);
+  line-height:1.7; letter-spacing:.15px;
   -webkit-tap-highlight-color: transparent;
+  padding-bottom: calc(env(safe-area-inset-bottom,0) + var(--space));
 }
 
-.wrap{max-width:900px; width:min(900px, calc(100% - 2*var(--space))); margin:0 auto; padding:var(--space)}
-.header h1{font-size:clamp(1.8rem, 2vw + 1rem, 2.4rem); margin:.5rem 0; font-weight:800}
-.intro{margin:0 0 var(--space)}
+.wrap{ max-width:900px; width:min(900px, calc(100% - 2*var(--space))); margin:0 auto; padding:var(--space) }
+.header h1{ font-size:clamp(1.8rem, 2vw + 1rem, 2.4rem); margin:.5rem 0; font-weight:900 }
+.intro{ margin:0 0 var(--space) }
 
+.card{
+  background:var(--card); border:1px solid var(--border);
+  border-radius:16px; padding:var(--space);
+  box-shadow:0 2px 10px rgba(0,0,0,.08);
+}
+
+/* ===== Controles ===== */
 .controles{
-  display:grid; gap:.8rem 1rem; align-items:center;
-  grid-template-columns:1fr; margin: var(--space) 0;
+  display:grid; gap:1rem; grid-template-columns:1fr;
+  margin: var(--space) 0;
 }
-label{display:block; font-weight:600; opacity:.95}
+label{ display:block; font-weight:800; opacity:.98 }
 select{
-  appearance:none; -webkit-appearance:none; -moz-appearance:none;
+  appearance:none;
   background:var(--card); color:var(--fg); border:1px solid var(--border);
   padding:.8rem 1rem; border-radius:.8rem; width:100%; font-size:1.05rem;
   background-image:url("data:image/svg+xml;utf8,<svg fill='currentColor' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path d='M5.5 7l4.5 5 4.5-5z'/></svg>");
@@ -51,14 +82,15 @@ select{
 }
 
 .btn{
-  border:0; border-radius:1rem; cursor:pointer; font-weight:700;
-  padding:1rem 1.2rem; min-height:52px; font-size:1.1rem;
-  transition: transform .15s ease, filter .15s ease;
+  border:0; border-radius:16px; cursor:pointer; font-weight:800;
+  padding:1rem 1.2rem; min-height:52px; font-size:1.05rem;
+  transition: transform .08s ease, filter .15s ease, box-shadow .15s ease,
+              background-color .15s ease, color .15s ease;
 }
-.btn:hover{ filter:brightness(1.06); transform: translateY(-1px) }
+.btn:hover{ filter:brightness(1.04); transform: translateY(-1px) }
 .btn:focus-visible{ outline:3px solid var(--focus); outline-offset:3px }
 .btn.principal{ background:var(--btn-primary-bg); color:var(--btn-primary-fg) }
-.btn.secundario{ background:var(--btn-sec-bg); color:var(--btn-sec-fg) }
+.btn.secundario{ background:var(--btn-sec-bg);  color:var(--btn-sec-fg) }
 
 .estado{ margin-top:.6rem } .estado p{ margin:.2rem 0 }
 
@@ -66,15 +98,17 @@ select{
 .fixed-top-right{ position:fixed; right:12px; top:12px; z-index:10 }
 .btn-ayuda{
   background:var(--btn-sec-bg); color:var(--btn-sec-fg); border:0;
-  width:44px; height:44px; border-radius:50%; font-weight:800; font-size:1.2rem; cursor:pointer;
+  width:44px; height:44px; border-radius:50%; font-weight:900; font-size:1.2rem; cursor:pointer;
   box-shadow:0 2px 6px rgba(0,0,0,.2);
 }
+.btn-ayuda:focus-visible{ outline:3px solid var(--focus); outline-offset:3px }
+
 .modal{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:20 }
 .modal[aria-hidden="false"]{ display:block }
 .modal-card{
   max-width:min(820px, 100% - 2*var(--space));
   margin:5vh auto; background:var(--card); color:var(--fg);
-  padding:var(--space); border-radius:1rem; border:1px solid var(--border)
+  padding:var(--space); border-radius:16px; border:1px solid var(--border)
 }
 .mt0{ margin-top:0 }
 .modal-actions{ display:flex; gap:10px; justify-content:flex-end }
@@ -86,115 +120,111 @@ select{
 }
 .color{
   position:relative;
-  width:100%; aspect-ratio: 1 / 1; border-radius:16px;
+  width:100%; aspect-ratio: 1 / 1; border-radius:20px;
   border:4px solid var(--border);
   box-shadow:0 2px 10px rgba(0,0,0,.12) inset, 0 2px 8px rgba(0,0,0,.08);
-  opacity:.95; cursor:pointer; transition: transform .1s ease, opacity .1s ease, filter .1s ease, box-shadow .1s ease;
+  opacity:.96; cursor:pointer;
+  transition: transform .08s ease, opacity .12s ease, filter .12s ease, box-shadow .12s ease;
 }
 .color:focus-visible{ outline:4px solid var(--focus); outline-offset:3px }
 
-/* === CONTRASTE ALTO EN ACTIVO (móvil-friendly) === */
-.color.activo{
-  transform: scale(1.08);
+.color.verde{   background: var(--verde) }
+.color.rojo{    background: var(--rojo) }
+.color.azul{    background: var(--azul) }
+.color.amarillo{background: var(--amarillo) }
+
+/* === Highlight durante reproducción / interacción === */
+/* tu JS usa .activo; agregamos alias .is-play por si lo necesitás luego */
+.color.activo,
+.color.is-play{
+  transform: scale(1.07);
   opacity: 1;
-  filter: brightness(1.25) saturate(1.25);
+  filter: brightness(1.22) saturate(1.15);
   box-shadow:
-    0 0 0 6px rgba(255,255,255,0.95),
-    0 0 18px rgba(0,0,0,0.25);
-  outline: 5px solid rgba(255,255,255,0.95);
+    0 0 0 6px rgba(255,255,255,.90),
+    0 0 18px rgba(0,0,0,.25);
+  outline: 5px solid rgba(255,255,255,.90);
   outline-offset: 2px;
-  animation: pulse-on 160ms ease;
+  animation: padPulse .16s ease;
 }
+@keyframes padPulse { from{ transform:scale(1.00) } to{ transform:scale(1.07) } }
 
-@keyframes pulse-on {
-  from { transform: scale(1.00); }
-  to   { transform: scale(1.08); }
-}
+/* Estado de error (opcional) */
+.tablero.error .color{ filter: grayscale(.35) opacity(.8) }
+.tablero.error .color.activo{ filter: none }
 
-.color.rojo{ background:var(--rojo) }
-.color.verde{ background:var(--verde) }
-.color.azul{ background:var(--azul) }
-.color.amarillo{ background:var(--amarillo) }
-
-/* Estado y progreso */
+/* ===== Progreso ===== */
 .progresoBar{
   height: 10px; background: color-mix(in oklab, var(--border) 80%, transparent);
   border-radius:999px; overflow:hidden; margin-top:.4rem;
 }
 #pbFill{ height:100%; width:0%; background:var(--btn-primary-bg); transition: width .25s ease }
 
-/* Footer */
+/* ===== Botón de sonido ===== */
+.btn-sonido{
+  background: var(--btn-sec-bg);
+  color: var(--btn-sec-fg);
+  border: none; border-radius: 50%;
+  width: 48px; height: 48px;
+  font-size: 1.2rem; cursor: pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow: 0 2px 6px rgba(0,0,0,.25);
+  margin-top: 60px; /* debajo del ? */
+  transition: transform .08s ease, filter .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+.btn-sonido:hover{ transform: translateY(-1px); filter: brightness(1.04) }
+.btn-sonido:focus-visible{ outline:3px solid var(--focus); outline-offset:3px }
+.btn-sonido[aria-pressed="false"]{
+  background: color-mix(in oklab, var(--border) 65%, transparent);
+  color: var(--fg);
+}
+
+/* ===== Modo daltónico: símbolos en los pads ===== */
+[data-colorblind="on"] .color{ position: relative; }
+[data-colorblind="on"] .color::after{
+  content: "";
+  position:absolute; inset:0; display:grid; place-items:center;
+  font-size: clamp(28px, 9vw, 60px); font-weight:900; line-height:1; pointer-events:none;
+  color:#111;
+  text-shadow: 0 0 4px rgba(255,255,255,.95), 0 0 2px rgba(0,0,0,.65);
+}
+[data-theme="light"][data-colorblind="on"] .color::after{
+  color:#fff;
+  text-shadow: 0 0 4px rgba(0,0,0,.9), 0 0 2px rgba(0,0,0,.9);
+}
+[data-colorblind="on"] .color.rojo::after{ content:"▲"; }      /* triángulo */
+[data-colorblind="on"] .color.verde::after{ content:"●"; }     /* círculo   */
+[data-colorblind="on"] .color.azul::after{ content:"■"; }      /* cuadrado  */
+[data-colorblind="on"] .color.amarillo::after{ content:"◆"; }  /* rombo     */
+
+/* ===== Footer ===== */
 .mini-credit{
-  margin-top:.6rem; padding:.4rem 0; border-top:1px solid var(--border);
+  margin-top:.8rem; padding:.6rem 0; border-top:1px solid var(--border);
   font-size:.85em; line-height:1.35; color:var(--muted);
 }
-.mini-credit a{ color:inherit; text-decoration:underline; font-weight:600 }
-.mini-label{ font-weight:700; color:var(--fg) }
+.mini-credit a{ color:inherit; text-decoration:underline; font-weight:700 }
+.mini-label{ font-weight:900; color:var(--fg) }
 
-/* Skip link */
+/* ===== Skip link ===== */
 .skip{ position:absolute; left:-9999px; top:auto }
 .skip:focus{
   left:12px; top:12px; background:var(--btn-primary-bg); color:var(--btn-primary-fg);
   padding:8px 10px; border-radius:8px; z-index:1000;
 }
 
-/* Tamaño muy grande */
+/* ===== Tamaño muy grande ===== */
 html.muy-grande{ font-size:125% }
 html.muy-grande body{ --fs-base: clamp(20px, 1.3vw + 16px, 24px) }
 
-/* Reduce motion */
+/* ===== Reduce motion ===== */
 @media (prefers-reduced-motion: reduce){
   *{ scroll-behavior:auto }
-  .color{ transition:none }
-  #pbFill{ transition:none }
-  .color.activo{ animation:none }
+  .color, .btn, .btn-sonido, #pbFill{ transition:none !important }
+  .color.activo, .color.is-play{ animation:none !important }
 }
 
-.btn-sonido {
-  background: #1e90ff;
-  border: none;
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  font-size: 1.2rem;
-  color: #fff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-  margin-top: 60px; /* queda justo debajo del ? */
+/* ===== Fallback color-mix ===== */
+@supports not (color: color-mix(in oklab, red 50%, white)){
+  .progresoBar{ background:#e9edf0; }
+  #pbFill{ background: var(--btn-primary-bg); }
 }
-
-.btn-sonido[aria-pressed="false"] {
-  background: #555;
-}
-
-/* ===== Modo daltónico: símbolos sobre cada color ===== */
-[data-colorblind="on"] .color{
-  position: relative;
-}
-[data-colorblind="on"] .color::after{
-  content: "";
-  position: absolute; inset: 0;
-  display: grid; place-items: center;
-  font-size: clamp(28px, 9vw, 60px);
-  font-weight: 900;
-  line-height: 1;
-  pointer-events: none;
-  color: #111;
-  text-shadow:
-    0 0 4px rgba(255,255,255,.95),
-    0 0 2px rgba(0,0,0,.65),
-    0 0 1px rgba(0,0,0,.65);
-}
-[data-theme="light"][data-colorblind="on"] .color::after{
-  color: #fff;
-  text-shadow:
-    0 0 4px rgba(0,0,0,.9),
-    0 0 2px rgba(0,0,0,.9);
-}
-[data-colorblind="on"] .color.rojo::after{ content: "▲"; }     /* triángulo */
-[data-colorblind="on"] .color.verde::after{ content: "●"; }    /* círculo   */
-[data-colorblind="on"] .color.azul::after{ content: "■"; }     /* cuadrado  */
-[data-colorblind="on"] .color.amarillo::after{ content: "◆"; } /* rombo     */

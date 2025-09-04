@@ -2,7 +2,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   /* ===== Versión ===== */
-  const VERSION = "v1.6.3";
+  const VERSION = "v1.7.0 (FALLTEM light default + UX)";
   const versionEl = document.getElementById('versionLabel');
   if (versionEl) versionEl.textContent = VERSION;
 
@@ -108,16 +108,20 @@ document.addEventListener('DOMContentLoaded', () => {
     try{ localStorage.setItem('seq_tamano', muy ? 'muy-grande' : 'grande'); }catch{}
   }
 
+  /* ===== Tema (DEFAULT: LIGHT) ===== */
+  function labelFor(mode){
+    // el botón describe la acción que hará
+    return mode === 'dark' ? 'Usar modo claro' : 'Usar modo oscuro';
+  }
   function applyTheme(mode){
-    const m=(mode==='light'||mode==='dark')?mode:'dark';
+    const m = (mode==='dark') ? 'dark' : 'light';   // default light
     document.documentElement.setAttribute('data-theme', m);
     if (themeBtn){
-      const isDark=(m==='dark');
-      themeBtn.textContent = isDark ? '🌞 Cambiar a claro' : '🌙 Cambiar a oscuro';
-      themeBtn.setAttribute('aria-pressed', String(isDark));
+      themeBtn.textContent = labelFor(m);
+      themeBtn.setAttribute('aria-pressed', String(m==='dark'));
     }
     const metaTheme = document.querySelector('meta[name="theme-color"]');
-    if (metaTheme) metaTheme.setAttribute('content', m==='dark' ? '#0b0b0b' : '#ffffff');
+    if (metaTheme) metaTheme.setAttribute('content', m==='dark' ? '#0b0b0b' : '#f8fbf4');
   }
 
   function cargarPreferencias(){
@@ -133,6 +137,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const m=Number(localStorage.getItem('seq_mejor')||0);
       mejor = isNaN(m)?0:m;
       setTexto(mejorEl, mejor);
+
+      // Tema: default LIGHT salvo preferencia guardada
+      const themeStored = localStorage.getItem('theme');
+      applyTheme(themeStored==='dark' ? 'dark' : 'light');
     }catch{}
     updateSoundButton();
   }
@@ -172,18 +180,20 @@ document.addEventListener('DOMContentLoaded', () => {
   async function iluminar(color){
     const btn = el(`.color.${color}`);
     if (!btn) return;
-    btn.classList.add('activo');
+    btn.classList.add('activo');    // compat antigua
+    btn.classList.add('is-play');   // compat con CSS nuevo
     await delay(tiempos.on);
     btn.classList.remove('activo');
+    btn.classList.remove('is-play');
     await delay(tiempos.off);
   }
 
   async function reproducirSecuencia(){
     puedeJugar = false;
-    tablero.setAttribute('aria-busy','true');
+    tablero?.setAttribute('aria-busy','true');
     setTexto(mensajeEl, 'Observá la secuencia…');
     for (const c of secuencia){ await iluminar(c); }
-    tablero.removeAttribute('aria-busy');
+    tablero?.removeAttribute('aria-busy');
     puedeJugar = true;
     setTexto(mensajeEl, 'Tu turno. Repetí la secuencia.');
   }
@@ -279,10 +289,14 @@ document.addEventListener('DOMContentLoaded', () => {
     b.addEventListener('click', ()=> pulsar(b.dataset.color));
   });
 
-  // Teclado: 1–4
+  // Teclado: 1–4 y flechas ←↑→↓
   document.addEventListener('keydown', (e)=>{
-    const map = { '1':'rojo', '2':'verde', '3':'azul', '4':'amarillo' };
-    if (map[e.key]) pulsar(map[e.key]);
+    const map = {
+      '1':'rojo', '2':'verde', '3':'azul', '4':'amarillo',
+      'ArrowLeft':'rojo', 'ArrowUp':'verde', 'ArrowRight':'azul', 'ArrowDown':'amarillo'
+    };
+    const color = map[e.key];
+    if (color) pulsar(color);
   });
 
   /* ===== Botones ===== */
@@ -317,31 +331,22 @@ document.addEventListener('DOMContentLoaded', () => {
   if (selTam) selTam.addEventListener('change', aplicarTam);
   if (selVel) selVel.addEventListener('change', ()=> setVelocidad(selVel.value));
 
-  (function initTheme(){
-    let mode='dark';
-    try{
-      const stored=localStorage.getItem('theme');
-      if(stored==='light'||stored==='dark') mode=stored;
-      else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) mode='light';
-    }catch{}
-    applyTheme(mode);
-  })();
+  // DEFAULT: light, salvo preferencia guardada (hecho en cargarPreferencias)
+  cargarPreferencias();
 
   if (themeBtn){
     themeBtn.addEventListener('click', ()=>{
-      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
       const next = current === 'dark' ? 'light' : 'dark';
       try { localStorage.setItem('theme', next); } catch {}
       applyTheme(next);
     });
   }
 
-  /* ===== Init ===== */
-  cargarPreferencias();
   actualizarUI();
 });
 
-// ----- Modo daltónico (toggle + persistencia) -----
+/* ===== Modo daltónico (toggle + persistencia) ===== */
 const cbBtn = document.getElementById('cbToggle');
 
 function applyColorblind(on){
