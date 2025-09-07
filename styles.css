@@ -205,3 +205,58 @@ html[data-theme="dark"][data-colorblind="on"] .color::after{ mix-blend-mode:scre
   .progresoBar{ background:#e9edf0 }
   #pbFill{ background:var(--btn-primary-bg) }
 }
+
+/* ===== FABs tema-aware  ===== */
+/* Tokens específicos para los FAB */
+:root{
+  --fab-bg-light: #1f2729;         /* disco oscuro en tema claro */
+  --fab-fg-light: #eef8ff;
+  --fab-shadow-light: 0 10px 20px rgba(0,0,0,.18), 0 2px 4px rgba(0,0,0,.12);
+
+  --fab-bg-dark: var(--accent-2);  /* turquesa en tema oscuro */
+  --fab-fg-dark: #05232a;
+  --fab-shadow-dark: 0 8px 18px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.05) inset;
+
+  --fab-ring: var(--accent-2);
+}
+
+/* base: quitamos color fijo previo y usamos variables */
+.fab{
+  border:0; width:46px; height:46px; border-radius:50%;
+  display:grid; place-items:center; cursor:pointer; font-weight:900; font-size:1.1rem;
+  transition: transform .08s ease, filter .15s ease, box-shadow .15s ease, background-color .15s ease, color .15s ease;
+}
+.fab:hover{ transform: translateY(-1px); filter: brightness(1.04) }
+.fab:focus-visible{
+  outline: 3px solid var(--fab-ring);
+  outline-offset: 3px;
+}
+
+/* modo Claro */
+html[data-theme="light"] .fab{
+  background: var(--fab-bg-light);
+  color: var(--fab-fg-light);
+  box-shadow: var(--fab-shadow-light);
+  text-shadow: 0 1px 0 rgba(0,0,0,.35); /* mejora legibilidad del ? */
+}
+
+/* modo Oscuro */
+html[data-theme="dark"] .fab{
+  background: var(--fab-bg-dark);
+  color: var(--fab-fg-dark);
+  box-shadow: var(--fab-shadow-dark);
+  text-shadow: none;
+}
+
+/* estado “activo”/presionado (ej. sonido on/off) muestra ring extra */
+.fab[aria-pressed="true"]{
+  box-shadow:
+    0 0 0 3px var(--fab-ring),
+    0 8px 18px rgba(0,0,0,.35);
+}
+
+/* accesibilidad: alto contraste incrementa el ring */
+@media (prefers-contrast: more){
+  .fab:focus-visible{ outline-width:4px }
+  .fab[aria-pressed="true"]{ box-shadow: 0 0 0 4px var(--fab-ring) }
+}
