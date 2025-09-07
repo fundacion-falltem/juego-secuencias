@@ -4,9 +4,11 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="description" content="Juego cognitivo accesible tipo Simón: repetí la secuencia de colores."/>
-  <meta name="theme-color" content="#0b0b0b"/>
+  <meta name="theme-color" content="#0e0e0e"/>
   <meta name="color-scheme" content="dark light"/>
   <meta name="referrer" content="strict-origin-when-cross-origin"/>
+
+  <!-- CSP -->
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self';
                  script-src 'self' 'unsafe-inline';
@@ -18,44 +20,79 @@
                  object-src 'none';
                  base-uri 'none';
                  form-action 'none'">
+
   <title>Secuencia de colores — Juegos Cognitivos</title>
-  <link rel="stylesheet" href="./styles.css?v=1.7.0">
+  <link rel="stylesheet" href="./styles.css?v=5.1">
 </head>
 
 <body>
   <a href="#juego" class="skip">Saltar directamente al juego</a>
 
-  <!-- Botones flotantes (arriba derecha): ayuda, tema y sonido -->
+  <!-- FABs -->
   <div class="fab-stack">
-    <button id="aboutBtn" class="fab" type="button" aria-haspopup="dialog" aria-controls="aboutModal" aria-expanded="false" aria-label="¿Por qué este juego?">?</button>
-    <button id="themeToggle" class="fab" type="button" aria-pressed="false" aria-label="Cambiar tema">🌙</button>
-    <button id="soundToggle" class="fab" type="button" aria-pressed="true" aria-label="Sonido activado">🔊</button>
+    <button id="aboutBtn" class="fab" type="button"
+            aria-haspopup="dialog" aria-controls="aboutModal"
+            aria-expanded="false" aria-label="¿Por qué este juego?">?</button>
+    <button id="themeToggle" class="fab" type="button"
+            aria-pressed="false" aria-label="Usar modo oscuro">🌙</button>
+    <button id="soundToggle" class="fab" type="button"
+            aria-pressed="true" aria-label="Sonido activado">🔊</button>
   </div>
 
   <!-- Modal ayuda -->
-  <div id="aboutModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="aboutTitle">
+  <div id="aboutModal" class="modal" role="dialog" aria-modal="true"
+       aria-hidden="true" aria-labelledby="aboutTitle">
     <div class="modal-card" role="document">
+      <button id="aboutCloseX" class="modal-close" type="button" aria-label="Cerrar">×</button>
+
       <h2 id="aboutTitle" class="mt0">¿Por qué este juego?</h2>
-      <p>Ejercita <strong>memoria de trabajo</strong>, <strong>atención</strong> y <strong>control inhibitorio</strong>. Observá la secuencia y repetila en el mismo orden.</p>
+      <p>
+        Este ejercicio está inspirado en <strong>tareas clínicas de memoria de trabajo</strong>,
+        utilizadas en investigación neuropsicológica
+        (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4381540/" target="_blank" rel="noopener">ver meta-análisis</a>).
+        Entrenar con secuencias de colores ayuda a estimular:
+      </p>
       <ul>
-        <li>Sesiones cortas (5–10 min), 2–3 veces por semana.</li>
-        <li>Sin límite de tiempo. Jugá con calma.</li>
-        <li>Subí la velocidad cuando te resulte fácil.</li>
+        <li><strong>Memoria de trabajo</strong> (retener y reproducir secuencias).</li>
+        <li><strong>Atención sostenida</strong> (seguir la secuencia completa).</li>
+        <li><strong>Control inhibitorio</strong> (evitar respuestas impulsivas).</li>
       </ul>
-      <p class="muted"><small>Actividad <strong>lúdica</strong>; no es práctica médica. No recolectamos datos personales.</small></p>
+
+      <h3 class="mt0">Cómo se juega</h3>
+      <ul>
+        <li>Presioná <strong>Comenzar</strong>.</li>
+        <li>Observá la secuencia de colores que se ilumina.</li>
+        <li>Repetila en el mismo orden tocando los cuadrados.</li>
+        <li>Cada nivel agrega <strong>un paso más</strong>.</li>
+        <li>Podés ajustar la <strong>velocidad</strong> cuando te resulte fácil.</li>
+        <li>Si lo necesitás, activá el <strong>modo daltónico</strong> para ver símbolos.</li>
+      </ul>
+
+      <h3 class="mt0">Sugerencias de uso</h3>
+      <ul>
+        <li>Sesiones de <strong>5–10 minutos</strong>.</li>
+        <li><strong>2–3 veces por semana</strong>.</li>
+        <li>Sin límite de tiempo: jugá a tu ritmo.</li>
+      </ul>
+
+      <p class="muted"><small>
+        Es una <strong>actividad lúdica</strong>; no reemplaza atención médica. No recolectamos datos personales.
+      </small></p>
+
       <div class="modal-actions">
         <button id="aboutClose" class="btn principal" type="button">Entendido</button>
       </div>
     </div>
   </div>
 
+  <!-- Contenido principal -->
   <main class="wrap" role="main" aria-labelledby="titulo">
     <header class="header">
       <h1 id="titulo">Secuencia de colores</h1>
       <p class="intro">Observá la secuencia y repetila. Cada nivel agrega un paso.</p>
 
-      <!-- Controles minimalistas -->
-      <section class="controles controles--simple" aria-label="Controles del juego">
+      <section class="controles" aria-label="Controles del juego">
+        <!-- velocidad -->
         <div class="control">
           <label for="velocidad">Velocidad</label>
           <select id="velocidad" aria-label="Elegir velocidad de la secuencia">
@@ -64,7 +101,7 @@
             <option value="rapido">Rápido</option>
           </select>
         </div>
-
+        <!-- acciones -->
         <div class="control control--actions">
           <button id="btnComenzar" class="btn principal" type="button">Comenzar</button>
           <button id="btnReiniciar" class="btn secundario" type="button" hidden>Volver a jugar</button>
@@ -73,7 +110,7 @@
       </section>
     </header>
 
-    <!-- Tablero -->
+    <!-- juego -->
     <section id="juego" class="juego" aria-live="polite">
       <div class="tablero" aria-label="Tablero de colores">
         <button class="color rojo"     data-color="rojo"     aria-label="Rojo (1)"></button>
@@ -89,13 +126,14 @@
       </div>
     </section>
 
+    <!-- créditos -->
     <footer class="mini-credit" role="contentinfo" aria-label="Créditos y aviso">
       <p>
         <strong class="mini-label">Créditos y aviso:</strong>
         Desarrollado por <a href="https://falltem.org/" target="_blank" rel="noopener noreferrer">FALLTEM</a>
         • Código abierto (MIT) • Actividad lúdica; no es práctica médica
         • No recolectamos datos personales
-        <br><small>🔊 Sonidos: <a href="https://pixabay.com/sound-effects/" target="_blank" rel="noopener">Pixabay Sound Effects</a> (licencia Pixabay)</small>
+        <br><small>🔊 Sonidos: <a href="https://pixabay.com/sound-effects/" target="_blank" rel="noopener">Pixabay</a> (licencia Pixabay)</small>
       </p>
     </footer>
   </main>
@@ -105,6 +143,6 @@
   <audio id="sndBad" preload="auto" src="./sounds/wrong-answer.mp3"></audio>
 
   <noscript><p style="margin:1rem">Este juego necesita JavaScript para funcionar.</p></noscript>
-  <script src="./app.js?v=1.7.0" defer></script>
+  <script src="./app.js?v=5.1" defer></script>
 </body>
 </html>

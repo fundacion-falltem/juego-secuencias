@@ -1,8 +1,7 @@
 'use strict';
 
 document.addEventListener('DOMContentLoaded', () => {
-  /* ===== Versión ===== */
-  const VERSION = "v1.7.1 (UI simplificada + dark FAB + accesibilidad)";
+  const VERSION = "v5.1 (UI simple + FABs + modal usable)";
   const versionEl = document.getElementById('versionLabel');
   if (versionEl) versionEl.textContent = VERSION;
 
@@ -10,14 +9,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnComenzar   = document.getElementById('btnComenzar');
   const btnReiniciar  = document.getElementById('btnReiniciar');
 
-  const themeBtn      = document.getElementById('themeToggle');  // FAB 🌙
-  const aboutBtn      = document.getElementById('aboutBtn');     // FAB ?
-  const soundBtn      = document.getElementById('soundToggle');  // FAB 🔊/🔇
+  const themeBtn      = document.getElementById('themeToggle');   // FAB 🌙/🌞
+  const aboutBtn      = document.getElementById('aboutBtn');      // FAB ?
+  const soundBtn      = document.getElementById('soundToggle');   // FAB 🔊/🔇
 
   const selVel        = document.getElementById('velocidad');
 
   const aboutModal    = document.getElementById('aboutModal');
   const aboutClose    = document.getElementById('aboutClose');
+  const aboutCloseX   = document.getElementById('aboutCloseX');
 
   const tablero       = document.querySelector('.tablero');
   const botones       = document.querySelectorAll('.color');
@@ -29,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const pbFill        = document.getElementById('pbFill');
   const mensajeEl     = document.getElementById('mensaje');
 
-  // Sonidos
   const sndOk  = document.getElementById('sndOk');
   const sndBad = document.getElementById('sndBad');
   if (sndOk)  sndOk.volume  = 0.5;
@@ -41,11 +40,11 @@ document.addEventListener('DOMContentLoaded', () => {
   let idxJugador = 0;
   let nivel = 0;
   let mejor = 0;
-  let puedeJugar = false;   // bloquea input durante reproducción
-  let tiempos = { on: 550, off: 250 }; // default "medio"
+  let puedeJugar = false;
+  let tiempos = { on: 550, off: 250 }; // "medio"
   let audioDesbloqueado = false;
 
-  // Sonido: estado global y helpers
+  // Sonido global
   let soundOn = true;
   try { soundOn = (localStorage.getItem('soundOn') !== '0'); } catch {}
 
@@ -55,46 +54,29 @@ document.addEventListener('DOMContentLoaded', () => {
     soundBtn.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
     soundBtn.setAttribute('aria-label', soundOn ? 'Sonido activado' : 'Sonido desactivado');
   }
-
   function playSound(audio){
     if (!audio || !soundOn) return;
-    try {
-      audio.currentTime = 0;
-      const p = audio.play();
-      if (p && typeof p.then === 'function') p.catch(()=>{});
-    } catch {}
+    try { audio.currentTime = 0; const p = audio.play(); if (p?.then) p.catch(()=>{}); } catch {}
   }
-
-  function stopAllSounds(){
-    [sndOk, sndBad].forEach(a=>{
-      if (!a) return;
-      try { a.pause(); } catch {}
-    });
-  }
+  function stopAllSounds(){ [sndOk, sndBad].forEach(a=>{ try{ a?.pause(); }catch{} }); }
 
   /* ===== Utils ===== */
   const el = (s) => document.querySelector(s);
   const delay = (ms) => new Promise(r => setTimeout(r, ms));
   const setTexto = (n, t) => { if (n) n.textContent = String(t); };
 
-  // RNG robusto + anti-repetición consecutiva
   function rngInt(max) {
-    if (window.crypto && window.crypto.getRandomValues) {
-      const arr = new Uint32Array(1);
-      window.crypto.getRandomValues(arr);
-      return arr[0] % max;
-    }
+    if (crypto?.getRandomValues) { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % max; }
     return Math.floor(Math.random() * max);
   }
   function pickNextColor(prev = null) {
     if (prev == null) return COLORES[rngInt(COLORES.length)];
-    let idx = rngInt(COLORES.length - 1);
-    const prevIdx = COLORES.indexOf(prev);
+    let idx = rngInt(COLORES.length - 1), prevIdx = COLORES.indexOf(prev);
     if (idx >= prevIdx) idx++;
     return COLORES[idx];
   }
 
-  /* ===== Velocidad (único select) ===== */
+  /* ===== Velocidad ===== */
   function setVelocidad(v){
     if (v==='lento')  tiempos = { on: 700, off: 350 };
     if (v==='medio')  tiempos = { on: 550, off: 250 };
@@ -102,20 +84,17 @@ document.addEventListener('DOMContentLoaded', () => {
     try{ localStorage.setItem('seq_vel', v); }catch{}
   }
 
-  /* ===== Tema (DEFAULT: LIGHT) ===== */
+  /* ===== Tema ===== */
   function applyTheme(mode){
-    const m = (mode==='dark') ? 'dark' : 'light';   // default light
+    const m = (mode==='dark') ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', m);
-
     if (themeBtn){
       themeBtn.setAttribute('aria-pressed', String(m==='dark'));
       themeBtn.setAttribute('aria-label', m==='dark' ? 'Usar modo claro' : 'Usar modo oscuro');
-      // El FAB muestra ícono, no texto
       themeBtn.textContent = (m==='dark') ? '🌞' : '🌙';
     }
-
     const metaTheme = document.querySelector('meta[name="theme-color"]');
-    if (metaTheme) metaTheme.setAttribute('content', m==='dark' ? '#0e0e0e' : '#f8fbf4');
+    metaTheme?.setAttribute('content', m==='dark' ? '#0e0e0e' : '#f8fbf4');
   }
 
   function cargarPreferencias(){
@@ -128,30 +107,38 @@ document.addEventListener('DOMContentLoaded', () => {
       mejor = isNaN(m)?0:m;
       setTexto(mejorEl, mejor);
 
-      // Tema: default LIGHT salvo preferencia guardada
       const themeStored = localStorage.getItem('theme');
       applyTheme(themeStored==='dark' ? 'dark' : 'light');
     }catch{}
     updateSoundButton();
   }
 
-  /* ===== Ayuda (modal) ===== */
-  function openAbout(){ if (aboutModal) { aboutModal.setAttribute('aria-hidden','false'); aboutClose?.focus(); } }
-  function closeAbout(){ if (aboutModal) aboutModal.setAttribute('aria-hidden','true'); }
+  /* ===== Modal ===== */
+  function openAbout(){
+    if (!aboutModal) return;
+    aboutModal.setAttribute('aria-hidden','false');
+    document.body.classList.add('no-scroll');  // bloquea fondo
+    aboutClose?.focus();
+  }
+  function closeAbout(){
+    if (!aboutModal) return;
+    aboutModal.setAttribute('aria-hidden','true');
+    document.body.classList.remove('no-scroll'); // restaura fondo
+  }
   aboutBtn?.addEventListener('click', openAbout);
   aboutClose?.addEventListener('click', closeAbout);
+  aboutCloseX?.addEventListener('click', closeAbout);
   aboutModal?.addEventListener('click', (e)=>{ if(e.target===aboutModal) closeAbout(); });
   document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeAbout(); });
 
   /* ===== Desbloqueo de audio (iOS/Safari) ===== */
   function tryUnlockAudio(){
     if (audioDesbloqueado) return;
-    [sndOk, sndBad].filter(Boolean).forEach(elm=>{
+    [sndOk, sndBad].filter(Boolean).forEach(a=>{
       try{
-        const p = elm.play();
-        if (p && typeof p.then === 'function') {
-          p.then(()=>{ elm.pause(); elm.currentTime = 0; }).catch(()=>{});
-        } else { elm.pause(); elm.currentTime = 0; }
+        const p=a.play();
+        if (p?.then){ p.then(()=>{ a.pause(); a.currentTime=0; }).catch(()=>{}); }
+        else { a.pause(); a.currentTime=0; }
       }catch{}
     });
     audioDesbloqueado = true;
@@ -165,16 +152,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ===== Reproducción ===== */
   async function iluminar(color){
-    const btn = el(`.color.${color}`);
-    if (!btn) return;
-    btn.classList.add('activo');    // compat antigua
-    btn.classList.add('is-play');   // compat con CSS nuevo
+    const btn = el(`.color.${color}`); if (!btn) return;
+    btn.classList.add('activo','is-play');
     await delay(tiempos.on);
-    btn.classList.remove('activo');
-    btn.classList.remove('is-play');
+    btn.classList.remove('activo','is-play');
     await delay(tiempos.off);
   }
-
   async function reproducirSecuencia(){
     puedeJugar = false;
     tablero?.setAttribute('aria-busy','true');
@@ -184,7 +167,6 @@ document.addEventListener('DOMContentLoaded', () => {
     puedeJugar = true;
     setTexto(mensajeEl, 'Tu turno. Repetí la secuencia.');
   }
-
   function actualizarUI(){
     setTexto(nivelEl, nivel);
     setTexto(pasoEl, idxJugador);
@@ -194,112 +176,75 @@ document.addEventListener('DOMContentLoaded', () => {
       pbFill.style.width = pct + '%';
     }
   }
-
   async function nuevoNivel(){
-    idxJugador = 0;
-    nivel++;
-    // agregar color evitando repetición consecutiva
+    idxJugador = 0; nivel++;
     const previo = secuencia.length ? secuencia[secuencia.length - 1] : null;
     secuencia.push(pickNextColor(previo));
     actualizarUI();
-    await delay(600);
-    await reproducirSecuencia();
+    await delay(600); await reproducirSecuencia();
   }
-
   function finDePartida(){
     puedeJugar = false;
     setTexto(mensajeEl, `❌ Error. Alcanzaste el nivel ${nivel}.`);
     playSound(sndBad);
-    if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
-    if (btnReiniciar) btnReiniciar.hidden = false;
-    if (btnComenzar)  btnComenzar.hidden  = true;
+    if (navigator.vibrate) navigator.vibrate([120,60,120]);
+    btnReiniciar && (btnReiniciar.hidden = false);
+    btnComenzar  && (btnComenzar.hidden  = true);
   }
-
   function victoriaParcial(){
-    // récord
     if (nivel > mejor){
-      mejor = nivel;
-      setTexto(mejorEl, mejor);
+      mejor = nivel; setTexto(mejorEl, mejor);
       try{ localStorage.setItem('seq_mejor', String(mejor)); }catch{}
     }
-
     setTexto(mensajeEl, '✅ ¡Bien! Nueva ronda…');
     if (navigator.vibrate) navigator.vibrate(40);
 
     let avanzado = false;
-    const avanzarUnaVez = ()=>{ if (avanzado) return; avanzado = true; nuevoNivel(); };
+    const avanzar = ()=>{ if (avanzado) return; avanzado = true; nuevoNivel(); };
 
-    // Si hay sonido, sincronizar con fin de audio
     if (soundOn && sndOk){
       try{
-        sndOk.currentTime = 0;
-        const p = sndOk.play();
-        if (p && typeof p.then === 'function') p.catch(()=>{});
-        sndOk.addEventListener('ended', avanzarUnaVez, { once:true });
-
-        // Respaldo
-        const espera = Math.max(800, (sndOk.duration || 0.8) * 1000);
-        setTimeout(avanzarUnaVez, espera);
+        sndOk.currentTime = 0; const p = sndOk.play(); if (p?.then) p.catch(()=>{});
+        sndOk.addEventListener('ended', avanzar, { once:true });
+        setTimeout(avanzar, Math.max(800, (sndOk.duration || 0.8) * 1000));
         return;
       }catch{}
     }
-    setTimeout(avanzarUnaVez, 800);
+    setTimeout(avanzar, 800);
   }
 
   /* ===== Interacción jugador ===== */
   function pulsar(color){
     if (!puedeJugar) return;
     const btn = el(`.color.${color}`);
-    if (btn){
-      btn.classList.add('activo');
-      setTimeout(()=>btn.classList.remove('activo'), 120);
-    }
-
-    idxJugador++;
-    actualizarUI();
+    if (btn){ btn.classList.add('activo'); setTimeout(()=>btn.classList.remove('activo'), 120); }
+    idxJugador++; actualizarUI();
 
     const esperado = secuencia[idxJugador - 1];
     if (color !== esperado){ finDePartida(); return; }
 
     if (idxJugador === secuencia.length){
-      puedeJugar = false;
-      setTimeout(victoriaParcial, 150);
+      puedeJugar = false; setTimeout(victoriaParcial, 150);
     }
   }
-
-  botones.forEach(b=>{
-    b.addEventListener('click', ()=> pulsar(b.dataset.color));
-  });
-
-  // Teclado: 1–4 y flechas ←↑→↓
+  botones.forEach(b=> b.addEventListener('click', ()=> pulsar(b.dataset.color)));
   document.addEventListener('keydown', (e)=>{
-    const map = {
-      '1':'rojo', '2':'verde', '3':'azul', '4':'amarillo',
-      'ArrowLeft':'rojo', 'ArrowUp':'verde', 'ArrowRight':'azul', 'ArrowDown':'amarillo'
-    };
-    const color = map[e.key];
-    if (color) pulsar(color);
+    const map = { '1':'rojo','2':'verde','3':'azul','4':'amarillo',
+      'ArrowLeft':'rojo','ArrowUp':'verde','ArrowRight':'azul','ArrowDown':'amarillo' };
+    const c = map[e.key]; if (c) pulsar(c);
   });
 
   /* ===== Botones ===== */
   async function comenzar(){
-    secuencia = [];
-    idxJugador = 0;
-    nivel = 0;
-    setTexto(mensajeEl, '');
-    if (pbFill) pbFill.style.width = '0%';
-
-    if (btnComenzar) btnComenzar.hidden = true;
-    if (btnReiniciar) btnReiniciar.hidden = true;
-
-    await delay(300);
-    await nuevoNivel();
+    secuencia = []; idxJugador = 0; nivel = 0;
+    setTexto(mensajeEl,''); pbFill && (pbFill.style.width = '0%');
+    btnComenzar && (btnComenzar.hidden = true);
+    btnReiniciar && (btnReiniciar.hidden = true);
+    await delay(300); await nuevoNivel();
   }
-
   btnComenzar?.addEventListener('click', comenzar);
   btnReiniciar?.addEventListener('click', comenzar);
 
-  // Toggle sonido (ícono + aria-label) y cortar al instante si se silencia
   soundBtn?.addEventListener('click', ()=>{
     soundOn = !soundOn;
     try { localStorage.setItem('soundOn', soundOn ? '1' : '0'); } catch {}
@@ -311,7 +256,6 @@ document.addEventListener('DOMContentLoaded', () => {
   selVel?.addEventListener('change', ()=> setVelocidad(selVel.value));
   cargarPreferencias();
 
-  // Toggle de tema (FAB)
   themeBtn?.addEventListener('click', ()=>{
     const current = document.documentElement.getAttribute('data-theme') || 'light';
     const next = current === 'dark' ? 'light' : 'dark';
@@ -324,7 +268,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* ===== Modo daltónico (toggle + persistencia) ===== */
 const cbBtn = document.getElementById('cbToggle');
-
 function applyColorblind(on){
   document.documentElement.setAttribute('data-colorblind', on ? 'on' : 'off');
   if (cbBtn){
@@ -333,13 +276,8 @@ function applyColorblind(on){
   }
   try { localStorage.setItem('seq_cb', on ? '1' : '0'); } catch {}
 }
-
-// Restaurar al cargar
-let cbPref = false;
-try { cbPref = localStorage.getItem('seq_cb') === '1'; } catch {}
+let cbPref = false; try { cbPref = localStorage.getItem('seq_cb') === '1'; } catch {}
 applyColorblind(cbPref);
-
-// Click
 cbBtn?.addEventListener('click', ()=>{
   const now = document.documentElement.getAttribute('data-colorblind') !== 'on';
   applyColorblind(now);

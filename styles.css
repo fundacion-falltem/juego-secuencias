@@ -1,35 +1,25 @@
 /* ======================================================
-   FALLTEM — Secuencias (Simón) — v5 (clean)
-   - Columna central única (título, intro, controles, tablero, estado)
-   - Controles minimalistas (Velocidad + Comenzar + Modo daltónico)
-   - FABs (ayuda/tema/sonido) y dark theme consistente
+   FALLTEM — Secuencias (Simón) — v5.1 (clean + modal usable)
    ====================================================== */
 
-/* ============== Tokens / Tema ============== */
+/* ===== Tokens / Tema ===== */
 :root{
   color-scheme: light dark;
 
   --fs-base: clamp(18px, 1.2vw + 14px, 22px);
   --space: clamp(12px, 1vw + 8px, 18px);
-  --col-width: 420px;                 /* columna principal */
+  --col-width: 420px;
 
   --font: "Montserrat", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 
-  /* superficies y texto */
   --bg:#f8fbf4; --fg:#1b1b1b; --muted:#50380b;
   --card:#ffffff; --border:#e5e7eb;
 
-  /* marca */
-  --accent:#99cd68;                    /* primario */
-  --accent-2:#5fcbe0;                  /* secundario/focus */
-  --warning:#e8b75b;
-  --focus: var(--accent-2);
+  --accent:#99cd68; --accent-2:#5fcbe0; --warning:#e8b75b; --focus: var(--accent-2);
 
-  /* botones */
   --btn-primary-bg: var(--accent);  --btn-primary-fg:#08340f;
   --btn-sec-bg: var(--accent-2);    --btn-sec-fg:#072a32;
 
-  /* pads */
   --verde:#9edc7a; --rojo:#f28b82; --azul:#7ecdf2; --amarillo:#f7d774;
 }
 html[data-theme="dark"]{
@@ -39,7 +29,7 @@ html[data-theme="dark"]{
   --btn-sec-bg: var(--accent-2);   --btn-sec-fg:#0a0a0a;
 }
 
-/* ============== Base ============== */
+/* ===== Base ===== */
 *{ box-sizing:border-box }
 html,body{ height:100% }
 html{ -webkit-text-size-adjust:100%; text-size-adjust:100% }
@@ -52,16 +42,15 @@ body{
 }
 .wrap{ max-width:900px; width:min(900px, calc(100% - 2*var(--space))); margin:0 auto; padding:var(--space) }
 
-/* ============== Columna central (todo) ============== */
+/* ===== Columna central ===== */
 .header, .header .intro, .controles, .tablero, .estado{
   max-width: var(--col-width);
-  margin-left:auto; margin-right:auto; width:100%;
-  text-align:center;
+  margin-left:auto; margin-right:auto; width:100%; text-align:center;
 }
 .header h1{ font-size:clamp(1.8rem, 2vw + 1rem, 2.4rem); margin:.5rem 0 .3rem; font-weight:900 }
 .header .intro{ margin:0 0 var(--space); font-size:1.05rem; line-height:1.6; opacity:.95 }
 
-/* ============== Controles ============== */
+/* ===== Controles ===== */
 .controles{
   display:grid; gap:1rem; margin:1rem 0 1.2rem;
   grid-template-columns: 1fr; grid-template-areas: "vel" "actions";
@@ -79,7 +68,7 @@ select{
 }
 select:focus-visible{ outline:3px solid var(--focus); outline-offset:3px; border-color:var(--focus) }
 
-/* ============== Botones ============== */
+/* ===== Botones ===== */
 .btn{
   border:0; border-radius:16px; cursor:pointer; font-weight:800;
   padding:1rem 1.2rem; min-height:52px; font-size:1.05rem;
@@ -97,7 +86,7 @@ select:focus-visible{ outline:3px solid var(--focus); outline-offset:3px; border
 .estado p{ margin:.2rem 0 }
 .estado .progresoBar{ width:100% }
 
-/* ============== FABs (ayuda/tema/sonido) ============== */
+/* ===== FABs ===== */
 .fab-stack{
   position:fixed; right:max(12px, env(safe-area-inset-right,0)); top:max(12px, env(safe-area-inset-top,0));
   display:grid; gap:12px; z-index:20;
@@ -112,17 +101,40 @@ select:focus-visible{ outline:3px solid var(--focus); outline-offset:3px; border
 .fab:hover{ transform:translateY(-1px); filter:brightness(1.04) }
 .fab:focus-visible{ outline:3px solid var(--focus); outline-offset:3px }
 
-/* ============== Modal ============== */
-.modal{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:30 }
+/* ===== Modal usable (scroll interno + botón X) ===== */
+.modal{
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:30;
+  overflow:auto; -webkit-overflow-scrolling:touch;
+}
 .modal[aria-hidden="false"]{ display:block }
 .modal-card{
-  max-width:min(820px, 100% - 2*var(--space)); margin:5vh auto; background:var(--card); color:var(--fg);
-  padding:var(--space); border-radius:16px; border:1px solid var(--border)
+  position:relative;
+  max-width:min(540px, 100% - 2*var(--space));
+  margin: min(8vh, 56px) auto;
+  max-height: calc(100vh - 2*min(8vh, 56px));
+  overflow:auto; scrollbar-gutter:stable both-edges; overscroll-behavior:contain;
+  background:var(--card); color:var(--fg);
+  padding:clamp(16px, 2vw, 24px);
+  border-radius:14px; border:1px solid var(--border);
+  box-shadow:0 4px 20px rgba(0,0,0,.25);
 }
-.mt0{ margin-top:0 }
-.modal-actions{ display:flex; gap:10px; justify-content:flex-end }
+.modal-close{
+  position:absolute; top:8px; right:8px; width:36px; height:36px; border-radius:50%;
+  display:grid; place-items:center; background:transparent; border:0; cursor:pointer;
+  font-size:20px; line-height:1; color:var(--fg); opacity:.75;
+}
+.modal-close:hover{ opacity:1 }
+.modal-close:focus-visible{ outline:3px solid var(--focus); outline-offset:3px }
+.modal-actions{
+  position:sticky; bottom:0;
+  background:linear-gradient(to top, color-mix(in oklab, var(--card) 96%, transparent), transparent 70%);
+  margin-top:12px; padding-top:12px;
+  display:flex; gap:10px; justify-content:flex-end;
+}
+/* impedir scroll de fondo */
+body.no-scroll{ overflow:hidden }
 
-/* ============== Tablero ============== */
+/* ===== Tablero ===== */
 .tablero{
   display:grid; gap:14px; margin:1.5rem auto; max-width:var(--col-width);
   grid-template-columns:1fr 1fr;
@@ -138,8 +150,6 @@ select:focus-visible{ outline:3px solid var(--focus); outline-offset:3px; border
 .color:focus-visible{ outline:4px solid var(--focus); outline-offset:3px }
 .color.verde{ background:var(--verde) } .color.rojo{ background:var(--rojo) }
 .color.azul{ background:var(--azul) } .color.amarillo{ background:var(--amarillo) }
-
-/* highlight */
 .color.activo, .color.is-play{
   transform:scale(1.07); opacity:1; filter:brightness(1.22) saturate(1.15);
   box-shadow:0 0 0 6px rgba(255,255,255,.90), 0 0 18px rgba(0,0,0,.25);
@@ -149,11 +159,11 @@ select:focus-visible{ outline:3px solid var(--focus); outline-offset:3px; border
 .tablero.error .color{ filter:grayscale(.35) opacity(.8) }
 .tablero.error .color.activo{ filter:none }
 
-/* progreso */
+/* ===== Progreso ===== */
 .progresoBar{ height:10px; background:color-mix(in oklab, var(--border) 80%, transparent); border-radius:999px; overflow:hidden; margin-top:.4rem }
 #pbFill{ height:100%; width:0%; background:linear-gradient(90deg, var(--btn-primary-bg), var(--btn-sec-bg)); transition:width .25s ease }
 
-/* ============== Modo daltónico ============== */
+/* ===== Modo daltónico ===== */
 [data-colorblind="on"] .color{ position:relative }
 [data-colorblind="on"] .color::after{
   content:""; position:absolute; inset:0; display:grid; place-items:center;
@@ -169,15 +179,12 @@ html[data-theme="dark"][data-colorblind="on"] .color::after{ mix-blend-mode:scre
 [data-colorblind="on"] .color.azul::after{ content:"■" }
 [data-colorblind="on"] .color.amarillo::after{ content:"◆" }
 
-/* ============== Footer ============== */
-.mini-credit{
-  margin-top:.8rem; padding:.6rem 0; border-top:1px solid var(--border);
-  font-size:.85em; line-height:1.35; color:var(--muted);
-}
+/* ===== Footer ===== */
+.mini-credit{ margin-top:.8rem; padding:.6rem 0; border-top:1px solid var(--border); font-size:.85em; line-height:1.35; color:var(--muted) }
 .mini-credit a{ color:inherit; text-decoration:underline; font-weight:700 }
 .mini-label{ font-weight:900; color:var(--fg) }
 
-/* ============== Accesibilidad extra ============== */
+/* ===== Accesibilidad extra ===== */
 .skip{ position:absolute; left:-9999px; top:auto }
 .skip:focus{
   left:max(12px, env(safe-area-inset-left,0)); top:max(12px, env(safe-area-inset-top,0));
@@ -194,7 +201,6 @@ html[data-theme="dark"][data-colorblind="on"] .color::after{ mix-blend-mode:scre
   .btn:focus-visible{ outline-width:4px }
   #pbFill{ background:var(--btn-primary-bg) }
 }
-/* fallback color-mix */
 @supports not (color: color-mix(in oklab, red 50%, white)){
   .progresoBar{ background:#e9edf0 }
   #pbFill{ background:var(--btn-primary-bg) }
