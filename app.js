@@ -2,18 +2,20 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   /* ===== Versión ===== */
-  const VERSION = "v1.7.0 (FALLTEM light default + UX)";
+  const VERSION = "v1.7.1 (UI simplificada + dark FAB + accesibilidad)";
   const versionEl = document.getElementById('versionLabel');
   if (versionEl) versionEl.textContent = VERSION;
 
   /* ===== Refs ===== */
   const btnComenzar   = document.getElementById('btnComenzar');
   const btnReiniciar  = document.getElementById('btnReiniciar');
-  const themeBtn      = document.getElementById('themeToggle');
-  const selTam        = document.getElementById('tamano');
+
+  const themeBtn      = document.getElementById('themeToggle');  // FAB 🌙
+  const aboutBtn      = document.getElementById('aboutBtn');     // FAB ?
+  const soundBtn      = document.getElementById('soundToggle');  // FAB 🔊/🔇
+
   const selVel        = document.getElementById('velocidad');
 
-  const aboutBtn      = document.getElementById('aboutBtn');
   const aboutModal    = document.getElementById('aboutModal');
   const aboutClose    = document.getElementById('aboutClose');
 
@@ -26,9 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const mejorEl       = document.getElementById('mejor');
   const pbFill        = document.getElementById('pbFill');
   const mensajeEl     = document.getElementById('mensaje');
-
-  // Botón flotante de sonido (🔊/🔇)
-  const soundBtn      = document.getElementById('soundToggle');
 
   // Sonidos
   const sndOk  = document.getElementById('sndOk');
@@ -95,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return COLORES[idx];
   }
 
+  /* ===== Velocidad (único select) ===== */
   function setVelocidad(v){
     if (v==='lento')  tiempos = { on: 700, off: 350 };
     if (v==='medio')  tiempos = { on: 550, off: 250 };
@@ -102,37 +102,27 @@ document.addEventListener('DOMContentLoaded', () => {
     try{ localStorage.setItem('seq_vel', v); }catch{}
   }
 
-  function aplicarTam(){
-    const muy = selTam && selTam.value === 'muy-grande';
-    document.documentElement.classList.toggle('muy-grande', !!muy);
-    try{ localStorage.setItem('seq_tamano', muy ? 'muy-grande' : 'grande'); }catch{}
-  }
-
   /* ===== Tema (DEFAULT: LIGHT) ===== */
-  function labelFor(mode){
-    // el botón describe la acción que hará
-    return mode === 'dark' ? 'Usar modo claro' : 'Usar modo oscuro';
-  }
   function applyTheme(mode){
     const m = (mode==='dark') ? 'dark' : 'light';   // default light
     document.documentElement.setAttribute('data-theme', m);
+
     if (themeBtn){
-      themeBtn.textContent = labelFor(m);
       themeBtn.setAttribute('aria-pressed', String(m==='dark'));
+      themeBtn.setAttribute('aria-label', m==='dark' ? 'Usar modo claro' : 'Usar modo oscuro');
+      // El FAB muestra ícono, no texto
+      themeBtn.textContent = (m==='dark') ? '🌞' : '🌙';
     }
+
     const metaTheme = document.querySelector('meta[name="theme-color"]');
-    if (metaTheme) metaTheme.setAttribute('content', m==='dark' ? '#0b0b0b' : '#f8fbf4');
+    if (metaTheme) metaTheme.setAttribute('content', m==='dark' ? '#0e0e0e' : '#f8fbf4');
   }
 
   function cargarPreferencias(){
     try{
-      const t=localStorage.getItem('seq_tamano');
-      if (t==='muy-grande') selTam.value='muy-grande';
-      aplicarTam();
-
       const v=localStorage.getItem('seq_vel');
-      if (['lento','medio','rapido'].includes(v)) selVel.value=v;
-      setVelocidad(selVel.value);
+      if (['lento','medio','rapido'].includes(v) && selVel) selVel.value=v || 'medio';
+      setVelocidad(selVel ? selVel.value : 'medio');
 
       const m=Number(localStorage.getItem('seq_mejor')||0);
       mejor = isNaN(m)?0:m;
@@ -146,25 +136,22 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ===== Ayuda (modal) ===== */
-  function openAbout(){ if (aboutModal) { aboutModal.setAttribute('aria-hidden','false'); if (aboutClose) aboutClose.focus(); } }
+  function openAbout(){ if (aboutModal) { aboutModal.setAttribute('aria-hidden','false'); aboutClose?.focus(); } }
   function closeAbout(){ if (aboutModal) aboutModal.setAttribute('aria-hidden','true'); }
-  if (aboutBtn)   aboutBtn.addEventListener('click', openAbout);
-  if (aboutClose) aboutClose.addEventListener('click', closeAbout);
-  if (aboutModal) aboutModal.addEventListener('click', (e)=>{ if(e.target===aboutModal) closeAbout(); });
+  aboutBtn?.addEventListener('click', openAbout);
+  aboutClose?.addEventListener('click', closeAbout);
+  aboutModal?.addEventListener('click', (e)=>{ if(e.target===aboutModal) closeAbout(); });
   document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeAbout(); });
 
   /* ===== Desbloqueo de audio (iOS/Safari) ===== */
   function tryUnlockAudio(){
     if (audioDesbloqueado) return;
-    const a = [sndOk, sndBad].filter(Boolean);
-    a.forEach(elm=>{
+    [sndOk, sndBad].filter(Boolean).forEach(elm=>{
       try{
         const p = elm.play();
         if (p && typeof p.then === 'function') {
           p.then(()=>{ elm.pause(); elm.currentTime = 0; }).catch(()=>{});
-        } else {
-          elm.pause(); elm.currentTime = 0;
-        }
+        } else { elm.pause(); elm.currentTime = 0; }
       }catch{}
     });
     audioDesbloqueado = true;
@@ -224,8 +211,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setTexto(mensajeEl, `❌ Error. Alcanzaste el nivel ${nivel}.`);
     playSound(sndBad);
     if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
-    btnReiniciar.hidden = false;
-    btnComenzar.hidden = true;
+    if (btnReiniciar) btnReiniciar.hidden = false;
+    if (btnComenzar)  btnComenzar.hidden  = true;
   }
 
   function victoriaParcial(){
@@ -242,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let avanzado = false;
     const avanzarUnaVez = ()=>{ if (avanzado) return; avanzado = true; nuevoNivel(); };
 
-    // Respeta el toggle de sonido: si hay sonido, sincroniza con el audio
+    // Si hay sonido, sincronizar con fin de audio
     if (soundOn && sndOk){
       try{
         sndOk.currentTime = 0;
@@ -250,14 +237,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (p && typeof p.then === 'function') p.catch(()=>{});
         sndOk.addEventListener('ended', avanzarUnaVez, { once:true });
 
-        // Respaldo por si 'ended' no dispara
+        // Respaldo
         const espera = Math.max(800, (sndOk.duration || 0.8) * 1000);
         setTimeout(avanzarUnaVez, espera);
         return;
       }catch{}
     }
-
-    // Silenciado o sin audio: avanzar con pequeño delay
     setTimeout(avanzarUnaVez, 800);
   }
 
@@ -270,17 +255,14 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(()=>btn.classList.remove('activo'), 120);
     }
 
-    // registrar
     idxJugador++;
     actualizarUI();
 
     const esperado = secuencia[idxJugador - 1];
     if (color !== esperado){ finDePartida(); return; }
 
-    // ¿completó el nivel?
     if (idxJugador === secuencia.length){
       puedeJugar = false;
-      // pequeño margen para que termine la última iluminación
       setTimeout(victoriaParcial, 150);
     }
   }
@@ -307,41 +289,35 @@ document.addEventListener('DOMContentLoaded', () => {
     setTexto(mensajeEl, '');
     if (pbFill) pbFill.style.width = '0%';
 
-    btnComenzar.hidden = true;
-    btnReiniciar.hidden = true;
+    if (btnComenzar) btnComenzar.hidden = true;
+    if (btnReiniciar) btnReiniciar.hidden = true;
 
     await delay(300);
     await nuevoNivel();
   }
 
-  if (btnComenzar) btnComenzar.addEventListener('click', comenzar);
-  if (btnReiniciar) btnReiniciar.addEventListener('click', comenzar);
+  btnComenzar?.addEventListener('click', comenzar);
+  btnReiniciar?.addEventListener('click', comenzar);
 
   // Toggle sonido (ícono + aria-label) y cortar al instante si se silencia
-  if (soundBtn){
-    soundBtn.addEventListener('click', ()=>{
-      soundOn = !soundOn;
-      try { localStorage.setItem('soundOn', soundOn ? '1' : '0'); } catch {}
-      updateSoundButton();
-      if (!soundOn) stopAllSounds();
-    });
-  }
+  soundBtn?.addEventListener('click', ()=>{
+    soundOn = !soundOn;
+    try { localStorage.setItem('soundOn', soundOn ? '1' : '0'); } catch {}
+    updateSoundButton();
+    if (!soundOn) stopAllSounds();
+  });
 
-  /* ===== Preferencias / tema ===== */
-  if (selTam) selTam.addEventListener('change', aplicarTam);
-  if (selVel) selVel.addEventListener('change', ()=> setVelocidad(selVel.value));
-
-  // DEFAULT: light, salvo preferencia guardada (hecho en cargarPreferencias)
+  /* ===== Preferencias ===== */
+  selVel?.addEventListener('change', ()=> setVelocidad(selVel.value));
   cargarPreferencias();
 
-  if (themeBtn){
-    themeBtn.addEventListener('click', ()=>{
-      const current = document.documentElement.getAttribute('data-theme') || 'light';
-      const next = current === 'dark' ? 'light' : 'dark';
-      try { localStorage.setItem('theme', next); } catch {}
-      applyTheme(next);
-    });
-  }
+  // Toggle de tema (FAB)
+  themeBtn?.addEventListener('click', ()=>{
+    const current = document.documentElement.getAttribute('data-theme') || 'light';
+    const next = current === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem('theme', next); } catch {}
+    applyTheme(next);
+  });
 
   actualizarUI();
 });

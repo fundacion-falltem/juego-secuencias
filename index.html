@@ -7,41 +7,30 @@
   <meta name="theme-color" content="#0b0b0b"/>
   <meta name="color-scheme" content="dark light"/>
   <meta name="referrer" content="strict-origin-when-cross-origin"/>
-
-  <!-- CSP: habilitamos audio local -->
   <meta http-equiv="Content-Security-Policy"
-      content="default-src 'self';
-               script-src 'self' 'unsafe-inline';
-               style-src 'self' 'unsafe-inline';
-               font-src 'self';
-               img-src 'self' data:;
-               media-src 'self';
-               connect-src 'self';
-               object-src 'none';
-               base-uri 'none';
-               form-action 'none'">
-
+        content="default-src 'self';
+                 script-src 'self' 'unsafe-inline';
+                 style-src 'self' 'unsafe-inline';
+                 font-src 'self';
+                 img-src 'self' data:;
+                 media-src 'self';
+                 connect-src 'self';
+                 object-src 'none';
+                 base-uri 'none';
+                 form-action 'none'">
   <title>Secuencia de colores — Juegos Cognitivos</title>
-  <link rel="stylesheet" href="./styles.css?v=1.3">
-  <div class="fixed-top-right">
-  <button id="soundToggle" class="btn-sonido" type="button" aria-pressed="true" aria-label="Sonido activado">
-    🔊
-  </button>
-  
-</div>
+  <link rel="stylesheet" href="./styles.css?v=1.7.0">
 </head>
 
 <body>
   <a href="#juego" class="skip">Saltar directamente al juego</a>
 
-  <!-- Botón ayuda -->
-  <div class="fixed-top-right">
-    <button id="aboutBtn" class="btn-ayuda" type="button" aria-haspopup="dialog" aria-controls="aboutModal" aria-expanded="false" aria-label="¿Por qué este juego?">?</button>
+  <!-- Botones flotantes (arriba derecha): ayuda, tema y sonido -->
+  <div class="fab-stack">
+    <button id="aboutBtn" class="fab" type="button" aria-haspopup="dialog" aria-controls="aboutModal" aria-expanded="false" aria-label="¿Por qué este juego?">?</button>
+    <button id="themeToggle" class="fab" type="button" aria-pressed="false" aria-label="Cambiar tema">🌙</button>
+    <button id="soundToggle" class="fab" type="button" aria-pressed="true" aria-label="Sonido activado">🔊</button>
   </div>
-
-  <button id="cbToggle" class="btn secundario" type="button" aria-pressed="false">
-  Modo daltónico
-</button>
 
   <!-- Modal ayuda -->
   <div id="aboutModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="aboutTitle">
@@ -65,26 +54,26 @@
       <h1 id="titulo">Secuencia de colores</h1>
       <p class="intro">Observá la secuencia y repetila. Cada nivel agrega un paso.</p>
 
-      <section class="controles" aria-label="Controles del juego">
-        <label for="tamano">Tamaño de texto</label>
-        <select id="tamano" aria-label="Elegir tamaño de texto">
-          <option value="grande" selected>Grande</option>
-          <option value="muy-grande">Muy grande</option>
-        </select>
+      <!-- Controles minimalistas -->
+      <section class="controles controles--simple" aria-label="Controles del juego">
+        <div class="control">
+          <label for="velocidad">Velocidad</label>
+          <select id="velocidad" aria-label="Elegir velocidad de la secuencia">
+            <option value="lento">Lento</option>
+            <option value="medio" selected>Medio</option>
+            <option value="rapido">Rápido</option>
+          </select>
+        </div>
 
-        <label for="velocidad">Velocidad</label>
-        <select id="velocidad" aria-label="Elegir velocidad de la secuencia">
-          <option value="lento">Lento</option>
-          <option value="medio" selected>Medio</option>
-          <option value="rapido">Rápido</option>
-        </select>
-
-        <button id="themeToggle" class="btn secundario" type="button" aria-pressed="false">Cambiar tema</button>
-        <button id="btnComenzar" class="btn principal" type="button">Comenzar</button>
-        <button id="btnReiniciar" class="btn secundario" type="button" hidden>Volver a jugar</button>
+        <div class="control control--actions">
+          <button id="btnComenzar" class="btn principal" type="button">Comenzar</button>
+          <button id="btnReiniciar" class="btn secundario" type="button" hidden>Volver a jugar</button>
+          <button id="cbToggle" class="btn secundario" type="button" aria-pressed="false">Modo daltónico</button>
+        </div>
       </section>
     </header>
 
+    <!-- Tablero -->
     <section id="juego" class="juego" aria-live="polite">
       <div class="tablero" aria-label="Tablero de colores">
         <button class="color rojo"     data-color="rojo"     aria-label="Rojo (1)"></button>
@@ -116,7 +105,6 @@
   <audio id="sndBad" preload="auto" src="./sounds/wrong-answer.mp3"></audio>
 
   <noscript><p style="margin:1rem">Este juego necesita JavaScript para funcionar.</p></noscript>
-  <link rel="stylesheet" href="./styles.css?v=1.6.4">
-<script src="./app.js?v=1.6.4" defer></script>
+  <script src="./app.js?v=1.7.0" defer></script>
 </body>
 </html>

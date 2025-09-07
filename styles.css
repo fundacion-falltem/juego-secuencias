@@ -1,51 +1,45 @@
 /* ======================================================
-   FALLTEM — Secuencias (Simón) — tema unificado
-   - Mantiene tus clases actuales (sin tocar HTML/JS)
-   - Montserrat + paleta de marca
-   - Light por defecto, Dark opcional con [data-theme="dark"]
+   FALLTEM — Secuencias (Simón) — v5 (clean)
+   - Columna central única (título, intro, controles, tablero, estado)
+   - Controles minimalistas (Velocidad + Comenzar + Modo daltónico)
+   - FABs (ayuda/tema/sonido) y dark theme consistente
    ====================================================== */
 
-/* ===== Tokens / Tema base ===== */
+/* ============== Tokens / Tema ============== */
 :root{
   color-scheme: light dark;
+
   --fs-base: clamp(18px, 1.2vw + 14px, 22px);
   --space: clamp(12px, 1vw + 8px, 18px);
+  --col-width: 420px;                 /* columna principal */
 
-  /* Tipografía */
   --font: "Montserrat", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 
-  /* Superficies */
+  /* superficies y texto */
   --bg:#f8fbf4; --fg:#1b1b1b; --muted:#50380b;
   --card:#ffffff; --border:#e5e7eb;
 
-  /* Marca */
-  --accent:#99cd68;     /* verde principal (botón primario) */
-  --accent-2:#5fcbe0;   /* celeste (foco/acciones secundarias) */
-  --warning:#e8b75b;    /* amarillo de marca */
+  /* marca */
+  --accent:#99cd68;                    /* primario */
+  --accent-2:#5fcbe0;                  /* secundario/focus */
+  --warning:#e8b75b;
   --focus: var(--accent-2);
 
-  /* Botones */
+  /* botones */
   --btn-primary-bg: var(--accent);  --btn-primary-fg:#08340f;
   --btn-sec-bg: var(--accent-2);    --btn-sec-fg:#072a32;
 
-  /* Tablero (pads) — tonos amables, buen contraste en light/dark */
-  --verde:#9edc7a;
-  --rojo:#f28b82;
-  --azul:#7ecdf2;
-  --amarillo:#f7d774;
+  /* pads */
+  --verde:#9edc7a; --rojo:#f28b82; --azul:#7ecdf2; --amarillo:#f7d774;
 }
-
-[data-theme="dark"]{
-  --bg:#0b0b0b; --fg:#f5f5f5; --muted:#cfcfcf;
+html[data-theme="dark"]{
+  --bg:#0e0e0e; --fg:#f2f2f2; --muted:#cfcfcf;
   --card:#171717; --border:#2a2a2a;
-
   --btn-primary-bg: var(--accent); --btn-primary-fg:#0a0a0a;
   --btn-sec-bg: var(--accent-2);   --btn-sec-fg:#0a0a0a;
-
-  /* pads se ven bien también en dark */
 }
 
-/* ===== Base ===== */
+/* ============== Base ============== */
 *{ box-sizing:border-box }
 html,body{ height:100% }
 html{ -webkit-text-size-adjust:100%; text-size-adjust:100% }
@@ -56,148 +50,126 @@ body{
   -webkit-tap-highlight-color: transparent;
   padding-bottom: calc(env(safe-area-inset-bottom,0) + var(--space));
 }
-
 .wrap{ max-width:900px; width:min(900px, calc(100% - 2*var(--space))); margin:0 auto; padding:var(--space) }
-.header h1{ font-size:clamp(1.8rem, 2vw + 1rem, 2.4rem); margin:.5rem 0; font-weight:900 }
-.intro{ margin:0 0 var(--space) }
 
-.card{
-  background:var(--card); border:1px solid var(--border);
-  border-radius:16px; padding:var(--space);
-  box-shadow:0 2px 10px rgba(0,0,0,.08);
+/* ============== Columna central (todo) ============== */
+.header, .header .intro, .controles, .tablero, .estado{
+  max-width: var(--col-width);
+  margin-left:auto; margin-right:auto; width:100%;
+  text-align:center;
 }
+.header h1{ font-size:clamp(1.8rem, 2vw + 1rem, 2.4rem); margin:.5rem 0 .3rem; font-weight:900 }
+.header .intro{ margin:0 0 var(--space); font-size:1.05rem; line-height:1.6; opacity:.95 }
 
-/* ===== Controles ===== */
+/* ============== Controles ============== */
 .controles{
-  display:grid; gap:1rem; grid-template-columns:1fr;
-  margin: var(--space) 0;
+  display:grid; gap:1rem; margin:1rem 0 1.2rem;
+  grid-template-columns: 1fr; grid-template-areas: "vel" "actions";
 }
+.controles .control{ display:grid; gap:.5rem }
+.controles .control:nth-child(1){ grid-area:vel }
+.controles .control--actions{ grid-area:actions; display:grid; gap:.8rem }
 label{ display:block; font-weight:800; opacity:.98 }
 select{
-  appearance:none;
+  appearance:none; width:100%;
   background:var(--card); color:var(--fg); border:1px solid var(--border);
-  padding:.8rem 1rem; border-radius:.8rem; width:100%; font-size:1.05rem;
+  padding:.8rem 1rem; border-radius:.8rem; font-size:1.05rem;
   background-image:url("data:image/svg+xml;utf8,<svg fill='currentColor' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path d='M5.5 7l4.5 5 4.5-5z'/></svg>");
   background-repeat:no-repeat; background-position:right 1rem center; background-size:1rem; padding-right:2.4rem;
 }
+select:focus-visible{ outline:3px solid var(--focus); outline-offset:3px; border-color:var(--focus) }
 
+/* ============== Botones ============== */
 .btn{
   border:0; border-radius:16px; cursor:pointer; font-weight:800;
   padding:1rem 1.2rem; min-height:52px; font-size:1.05rem;
-  transition: transform .08s ease, filter .15s ease, box-shadow .15s ease,
-              background-color .15s ease, color .15s ease;
+  transition: transform .08s ease, filter .15s ease, box-shadow .15s ease, background-color .15s ease, color .15s ease;
+  touch-action:manipulation; width:100%;
 }
-.btn:hover{ filter:brightness(1.04); transform: translateY(-1px) }
+.btn:hover{ filter:brightness(1.04); transform:translateY(-1px) }
 .btn:focus-visible{ outline:3px solid var(--focus); outline-offset:3px }
 .btn.principal{ background:var(--btn-primary-bg); color:var(--btn-primary-fg) }
 .btn.secundario{ background:var(--btn-sec-bg);  color:var(--btn-sec-fg) }
+.btn:disabled, .btn[aria-disabled="true"]{ opacity:.55; cursor:not-allowed; filter:none; transform:none; box-shadow:none }
+.btn[aria-pressed="true"]{ box-shadow:inset 0 2px 6px rgba(0,0,0,.18); filter:brightness(0.98) }
 
-.estado{ margin-top:.6rem } .estado p{ margin:.2rem 0 }
+.estado{ margin-top:.6rem }
+.estado p{ margin:.2rem 0 }
+.estado .progresoBar{ width:100% }
 
-/* ===== Ayuda (botón + modal) ===== */
-.fixed-top-right{ position:fixed; right:12px; top:12px; z-index:10 }
-.btn-ayuda{
-  background:var(--btn-sec-bg); color:var(--btn-sec-fg); border:0;
-  width:44px; height:44px; border-radius:50%; font-weight:900; font-size:1.2rem; cursor:pointer;
-  box-shadow:0 2px 6px rgba(0,0,0,.2);
+/* ============== FABs (ayuda/tema/sonido) ============== */
+.fab-stack{
+  position:fixed; right:max(12px, env(safe-area-inset-right,0)); top:max(12px, env(safe-area-inset-top,0));
+  display:grid; gap:12px; z-index:20;
 }
-.btn-ayuda:focus-visible{ outline:3px solid var(--focus); outline-offset:3px }
+.fab{
+  background:var(--btn-sec-bg); color:var(--btn-sec-fg); border:0;
+  width:46px; height:46px; border-radius:50%;
+  font-weight:900; font-size:1.1rem; display:grid; place-items:center; cursor:pointer;
+  box-shadow:0 2px 6px rgba(0,0,0,.2);
+  transition: transform .08s ease, filter .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+.fab:hover{ transform:translateY(-1px); filter:brightness(1.04) }
+.fab:focus-visible{ outline:3px solid var(--focus); outline-offset:3px }
 
-.modal{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:20 }
+/* ============== Modal ============== */
+.modal{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:30 }
 .modal[aria-hidden="false"]{ display:block }
 .modal-card{
-  max-width:min(820px, 100% - 2*var(--space));
-  margin:5vh auto; background:var(--card); color:var(--fg);
+  max-width:min(820px, 100% - 2*var(--space)); margin:5vh auto; background:var(--card); color:var(--fg);
   padding:var(--space); border-radius:16px; border:1px solid var(--border)
 }
 .mt0{ margin-top:0 }
 .modal-actions{ display:flex; gap:10px; justify-content:flex-end }
 
-/* ===== Tablero ===== */
+/* ============== Tablero ============== */
 .tablero{
-  display:grid; gap:14px; margin: var(--space) auto; max-width: 420px;
-  grid-template-columns: 1fr 1fr;
+  display:grid; gap:14px; margin:1.5rem auto; max-width:var(--col-width);
+  grid-template-columns:1fr 1fr;
 }
 .color{
-  position:relative;
-  width:100%; aspect-ratio: 1 / 1; border-radius:20px;
+  position:relative; width:100%; aspect-ratio:1/1; border-radius:20px;
   border:4px solid var(--border);
   box-shadow:0 2px 10px rgba(0,0,0,.12) inset, 0 2px 8px rgba(0,0,0,.08);
   opacity:.96; cursor:pointer;
   transition: transform .08s ease, opacity .12s ease, filter .12s ease, box-shadow .12s ease;
+  min-width:120px; flex:0 0 auto;
 }
 .color:focus-visible{ outline:4px solid var(--focus); outline-offset:3px }
+.color.verde{ background:var(--verde) } .color.rojo{ background:var(--rojo) }
+.color.azul{ background:var(--azul) } .color.amarillo{ background:var(--amarillo) }
 
-.color.verde{   background: var(--verde) }
-.color.rojo{    background: var(--rojo) }
-.color.azul{    background: var(--azul) }
-.color.amarillo{background: var(--amarillo) }
-
-/* === Highlight durante reproducción / interacción === */
-/* tu JS usa .activo; agregamos alias .is-play por si lo necesitás luego */
-.color.activo,
-.color.is-play{
-  transform: scale(1.07);
-  opacity: 1;
-  filter: brightness(1.22) saturate(1.15);
-  box-shadow:
-    0 0 0 6px rgba(255,255,255,.90),
-    0 0 18px rgba(0,0,0,.25);
-  outline: 5px solid rgba(255,255,255,.90);
-  outline-offset: 2px;
-  animation: padPulse .16s ease;
+/* highlight */
+.color.activo, .color.is-play{
+  transform:scale(1.07); opacity:1; filter:brightness(1.22) saturate(1.15);
+  box-shadow:0 0 0 6px rgba(255,255,255,.90), 0 0 18px rgba(0,0,0,.25);
+  outline:5px solid rgba(255,255,255,.90); outline-offset:2px; animation:padPulse .16s ease;
 }
-@keyframes padPulse { from{ transform:scale(1.00) } to{ transform:scale(1.07) } }
+@keyframes padPulse{ from{ transform:scale(1.00) } to{ transform:scale(1.07) } }
+.tablero.error .color{ filter:grayscale(.35) opacity(.8) }
+.tablero.error .color.activo{ filter:none }
 
-/* Estado de error (opcional) */
-.tablero.error .color{ filter: grayscale(.35) opacity(.8) }
-.tablero.error .color.activo{ filter: none }
+/* progreso */
+.progresoBar{ height:10px; background:color-mix(in oklab, var(--border) 80%, transparent); border-radius:999px; overflow:hidden; margin-top:.4rem }
+#pbFill{ height:100%; width:0%; background:linear-gradient(90deg, var(--btn-primary-bg), var(--btn-sec-bg)); transition:width .25s ease }
 
-/* ===== Progreso ===== */
-.progresoBar{
-  height: 10px; background: color-mix(in oklab, var(--border) 80%, transparent);
-  border-radius:999px; overflow:hidden; margin-top:.4rem;
-}
-#pbFill{ height:100%; width:0%; background:var(--btn-primary-bg); transition: width .25s ease }
-
-/* ===== Botón de sonido ===== */
-.btn-sonido{
-  background: var(--btn-sec-bg);
-  color: var(--btn-sec-fg);
-  border: none; border-radius: 50%;
-  width: 48px; height: 48px;
-  font-size: 1.2rem; cursor: pointer;
-  display:flex; align-items:center; justify-content:center;
-  box-shadow: 0 2px 6px rgba(0,0,0,.25);
-  margin-top: 60px; /* debajo del ? */
-  transition: transform .08s ease, filter .15s ease, box-shadow .15s ease, background-color .15s ease;
-}
-.btn-sonido:hover{ transform: translateY(-1px); filter: brightness(1.04) }
-.btn-sonido:focus-visible{ outline:3px solid var(--focus); outline-offset:3px }
-.btn-sonido[aria-pressed="false"]{
-  background: color-mix(in oklab, var(--border) 65%, transparent);
-  color: var(--fg);
-}
-
-/* ===== Modo daltónico: símbolos en los pads ===== */
-[data-colorblind="on"] .color{ position: relative; }
+/* ============== Modo daltónico ============== */
+[data-colorblind="on"] .color{ position:relative }
 [data-colorblind="on"] .color::after{
-  content: "";
-  position:absolute; inset:0; display:grid; place-items:center;
-  font-size: clamp(28px, 9vw, 60px); font-weight:900; line-height:1; pointer-events:none;
-  color:#111;
-  text-shadow: 0 0 4px rgba(255,255,255,.95), 0 0 2px rgba(0,0,0,.65);
+  content:""; position:absolute; inset:0; display:grid; place-items:center;
+  font-size:clamp(28px, 9vw, 60px); font-weight:900; line-height:1; pointer-events:none;
+  color:#111; text-shadow:0 0 4px rgba(255,255,255,.95), 0 0 2px rgba(0,0,0,.65); mix-blend-mode:multiply;
 }
-[data-theme="light"][data-colorblind="on"] .color::after{
-  color:#fff;
-  text-shadow: 0 0 4px rgba(0,0,0,.9), 0 0 2px rgba(0,0,0,.9);
+html[data-theme="light"][data-colorblind="on"] .color::after{
+  color:#fff; text-shadow:0 0 4px rgba(0,0,0,.9), 0 0 2px rgba(0,0,0,.9); mix-blend-mode:normal;
 }
-[data-colorblind="on"] .color.rojo::after{ content:"▲"; }      /* triángulo */
-[data-colorblind="on"] .color.verde::after{ content:"●"; }     /* círculo   */
-[data-colorblind="on"] .color.azul::after{ content:"■"; }      /* cuadrado  */
-[data-colorblind="on"] .color.amarillo::after{ content:"◆"; }  /* rombo     */
+html[data-theme="dark"][data-colorblind="on"] .color::after{ mix-blend-mode:screen }
+[data-colorblind="on"] .color.rojo::after{ content:"▲" }
+[data-colorblind="on"] .color.verde::after{ content:"●" }
+[data-colorblind="on"] .color.azul::after{ content:"■" }
+[data-colorblind="on"] .color.amarillo::after{ content:"◆" }
 
-/* ===== Footer ===== */
+/* ============== Footer ============== */
 .mini-credit{
   margin-top:.8rem; padding:.6rem 0; border-top:1px solid var(--border);
   font-size:.85em; line-height:1.35; color:var(--muted);
@@ -205,26 +177,25 @@ select{
 .mini-credit a{ color:inherit; text-decoration:underline; font-weight:700 }
 .mini-label{ font-weight:900; color:var(--fg) }
 
-/* ===== Skip link ===== */
+/* ============== Accesibilidad extra ============== */
 .skip{ position:absolute; left:-9999px; top:auto }
 .skip:focus{
-  left:12px; top:12px; background:var(--btn-primary-bg); color:var(--btn-primary-fg);
-  padding:8px 10px; border-radius:8px; z-index:1000;
+  left:max(12px, env(safe-area-inset-left,0)); top:max(12px, env(safe-area-inset-top,0));
+  background:var(--btn-primary-bg); color:var(--btn-primary-fg); padding:8px 10px; border-radius:8px; z-index:1000;
 }
-
-/* ===== Tamaño muy grande ===== */
-html.muy-grande{ font-size:125% }
-html.muy-grande body{ --fs-base: clamp(20px, 1.3vw + 16px, 24px) }
-
-/* ===== Reduce motion ===== */
 @media (prefers-reduced-motion: reduce){
   *{ scroll-behavior:auto }
-  .color, .btn, .btn-sonido, #pbFill{ transition:none !important }
+  .color, .btn, #pbFill{ transition:none !important }
   .color.activo, .color.is-play{ animation:none !important }
 }
-
-/* ===== Fallback color-mix ===== */
+@media (prefers-contrast: more){
+  :root{ --border:#4b5563 }
+  .btn.principal{ box-shadow:inset 0 0 0 3px rgba(0,0,0,.18) }
+  .btn:focus-visible{ outline-width:4px }
+  #pbFill{ background:var(--btn-primary-bg) }
+}
+/* fallback color-mix */
 @supports not (color: color-mix(in oklab, red 50%, white)){
-  .progresoBar{ background:#e9edf0; }
-  #pbFill{ background: var(--btn-primary-bg); }
+  .progresoBar{ background:#e9edf0 }
+  #pbFill{ background:var(--btn-primary-bg) }
 }
