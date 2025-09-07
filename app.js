@@ -1,7 +1,7 @@
 'use strict';
 
 document.addEventListener('DOMContentLoaded', () => {
-  const VERSION = "v5.1 (UI simple + FABs + modal usable)";
+  const VERSION = "v5.2 (UI simple + FABs + modal usable + FAB compacto móvil)";
   const versionEl = document.getElementById('versionLabel');
   if (versionEl) versionEl.textContent = VERSION;
 
@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let soundOn = true;
   try { soundOn = (localStorage.getItem('soundOn') !== '0'); } catch {}
 
+  /* ===== Helpers ===== */
   function updateSoundButton(){
     if (!soundBtn) return;
     soundBtn.textContent = soundOn ? '🔊' : '🔇';
@@ -60,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function stopAllSounds(){ [sndOk, sndBad].forEach(a=>{ try{ a?.pause(); }catch{} }); }
 
-  /* ===== Utils ===== */
   const el = (s) => document.querySelector(s);
   const delay = (ms) => new Promise(r => setTimeout(r, ms));
   const setTexto = (n, t) => { if (n) n.textContent = String(t); };
@@ -113,17 +113,25 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSoundButton();
   }
 
+  /* ===== FAB compacto móvil ===== */
+  function setFabCompact(on){
+    document.body.classList.toggle('fab-compact', !!on);
+  }
+
   /* ===== Modal ===== */
   function openAbout(){
     if (!aboutModal) return;
     aboutModal.setAttribute('aria-hidden','false');
     document.body.classList.add('no-scroll');  // bloquea fondo
+    setFabCompact(false);                      // que no molesten al leer
     aboutClose?.focus();
   }
   function closeAbout(){
     if (!aboutModal) return;
     aboutModal.setAttribute('aria-hidden','true');
     document.body.classList.remove('no-scroll'); // restaura fondo
+    // Si estabas jugando, volvemos al modo compacto
+    if (secuencia.length > 0 && btnComenzar?.hidden) setFabCompact(true);
   }
   aboutBtn?.addEventListener('click', openAbout);
   aboutClose?.addEventListener('click', closeAbout);
@@ -190,6 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (navigator.vibrate) navigator.vibrate([120,60,120]);
     btnReiniciar && (btnReiniciar.hidden = false);
     btnComenzar  && (btnComenzar.hidden  = true);
+    setFabCompact(false); // ← restaurar FABs
   }
   function victoriaParcial(){
     if (nivel > mejor){
@@ -240,7 +249,11 @@ document.addEventListener('DOMContentLoaded', () => {
     setTexto(mensajeEl,''); pbFill && (pbFill.style.width = '0%');
     btnComenzar && (btnComenzar.hidden = true);
     btnReiniciar && (btnReiniciar.hidden = true);
-    await delay(300); await nuevoNivel();
+
+    setFabCompact(true); // ← compactar FABs al empezar (móvil)
+
+    await delay(300);
+    await nuevoNivel();
   }
   btnComenzar?.addEventListener('click', comenzar);
   btnReiniciar?.addEventListener('click', comenzar);

@@ -260,3 +260,23 @@ html[data-theme="dark"] .fab{
   .fab:focus-visible{ outline-width:4px }
   .fab[aria-pressed="true"]{ box-shadow: 0 0 0 4px var(--fab-ring) }
 }
+
+/* ===== FABs compactos en móvil cuando se está jugando ===== */
+@media (max-width: 640px){
+  body.fab-compact .fab-stack{
+    right: 8px;
+    top: 8px;
+    gap: 10px;
+  }
+  body.fab-compact .fab{
+    width: 38px;
+    height: 38px;
+    box-shadow: 0 6px 14px rgba(0,0,0,.18);
+    opacity: .85;                 /* un poco más discretos */
+  }
+  body.fab-compact .fab:hover,
+  body.fab-compact .fab:focus-visible{
+    opacity: 1;
+  }
+}
+
