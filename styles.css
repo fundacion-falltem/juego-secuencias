@@ -1,5 +1,9 @@
 /* ======================================================
-   FALLTEM — Secuencias (Simón) — v5.1 (clean + modal usable)
+   FALLTEM — Secuencias (Simón) — v5.4
+   - Columna central unificada
+   - FABs tema-aware + compactos móvil
+   - Modal usable (scroll interno + X + fondo bloqueado)
+   - Accesibilidad: sr-only, reduced motion, contrast
    ====================================================== */
 
 /* ===== Tokens / Tema ===== */
@@ -21,6 +25,17 @@
   --btn-sec-bg: var(--accent-2);    --btn-sec-fg:#072a32;
 
   --verde:#9edc7a; --rojo:#f28b82; --azul:#7ecdf2; --amarillo:#f7d774;
+
+  /* FAB theme-aware */
+  --fab-bg-light: #1f2729;
+  --fab-fg-light: #eef8ff;
+  --fab-shadow-light: 0 10px 20px rgba(0,0,0,.18), 0 2px 4px rgba(0,0,0,.12);
+
+  --fab-bg-dark: var(--accent-2);
+  --fab-fg-dark: #05232a;
+  --fab-shadow-dark: 0 8px 18px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.05) inset;
+
+  --fab-ring: var(--accent-2);
 }
 html[data-theme="dark"]{
   --bg:#0e0e0e; --fg:#f2f2f2; --muted:#cfcfcf;
@@ -81,10 +96,7 @@ select:focus-visible{ outline:3px solid var(--focus); outline-offset:3px; border
 .btn.secundario{ background:var(--btn-sec-bg);  color:var(--btn-sec-fg) }
 .btn:disabled, .btn[aria-disabled="true"]{ opacity:.55; cursor:not-allowed; filter:none; transform:none; box-shadow:none }
 .btn[aria-pressed="true"]{ box-shadow:inset 0 2px 6px rgba(0,0,0,.18); filter:brightness(0.98) }
-
-.estado{ margin-top:.6rem }
-.estado p{ margin:.2rem 0 }
-.estado .progresoBar{ width:100% }
+a.btn, a.btn:link, a.btn:visited, a.btn:hover, a.btn:focus, a.btn:active{ text-decoration:none; color:inherit }
 
 /* ===== FABs ===== */
 .fab-stack{
@@ -92,16 +104,36 @@ select:focus-visible{ outline:3px solid var(--focus); outline-offset:3px; border
   display:grid; gap:12px; z-index:20;
 }
 .fab{
-  background:var(--btn-sec-bg); color:var(--btn-sec-fg); border:0;
-  width:46px; height:46px; border-radius:50%;
-  font-weight:900; font-size:1.1rem; display:grid; place-items:center; cursor:pointer;
-  box-shadow:0 2px 6px rgba(0,0,0,.2);
-  transition: transform .08s ease, filter .15s ease, box-shadow .15s ease, background-color .15s ease;
+  border:0; width:46px; height:46px; border-radius:50%;
+  display:grid; place-items:center; cursor:pointer; font-weight:900; font-size:1.1rem;
+  transition: transform .08s ease, filter .15s ease, box-shadow .15s ease, background-color .15s ease, color .15s ease;
 }
-.fab:hover{ transform:translateY(-1px); filter:brightness(1.04) }
-.fab:focus-visible{ outline:3px solid var(--focus); outline-offset:3px }
+/* Light */
+html[data-theme="light"] .fab{
+  background: var(--fab-bg-light);
+  color: var(--fab-fg-light);
+  box-shadow: var(--fab-shadow-light);
+  text-shadow: 0 1px 0 rgba(0,0,0,.35);
+}
+/* Dark */
+html[data-theme="dark"] .fab{
+  background: var(--fab-bg-dark);
+  color: var(--fab-fg-dark);
+  box-shadow: var(--fab-shadow-dark);
+  text-shadow: none;
+}
+.fab:hover{ transform: translateY(-1px); filter: brightness(1.04) }
+.fab:focus-visible{ outline:3px solid var(--fab-ring); outline-offset:3px }
+.fab[aria-pressed="true"]{ box-shadow: 0 0 0 3px var(--fab-ring), 0 8px 18px rgba(0,0,0,.35) }
 
-/* ===== Modal usable (scroll interno + botón X) ===== */
+/* FABs compactos mientras se juega (móvil) */
+@media (max-width: 640px){
+  body.fab-compact .fab-stack{ right:8px; top:8px; gap:10px; }
+  body.fab-compact .fab{ width:38px; height:38px; box-shadow:0 6px 14px rgba(0,0,0,.18); opacity:.85; }
+  body.fab-compact .fab:hover, body.fab-compact .fab:focus-visible{ opacity:1; }
+}
+
+/* ===== Modal usable ===== */
 .modal{
   display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:30;
   overflow:auto; -webkit-overflow-scrolling:touch;
@@ -180,11 +212,16 @@ html[data-theme="dark"][data-colorblind="on"] .color::after{ mix-blend-mode:scre
 [data-colorblind="on"] .color.amarillo::after{ content:"◆" }
 
 /* ===== Footer ===== */
-.mini-credit{ margin-top:.8rem; padding:.6rem 0; border-top:1px solid var(--border); font-size:.55em; line-height:1.35; color:var(--muted) }
+.mini-credit{ margin-top:.8rem; padding:.6rem 0; border-top:1px solid var(--border); font-size:.85em; line-height:1.35; color:var(--muted) }
 .mini-credit a{ color:inherit; text-decoration:underline; font-weight:700 }
 .mini-label{ font-weight:900; color:var(--fg) }
 
-/* ===== Accesibilidad extra ===== */
+/* ===== Accesibilidad ===== */
+.visually-hidden{
+  position:absolute !important;
+  width:1px; height:1px; margin:-1px; padding:0;
+  overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
+}
 .skip{ position:absolute; left:-9999px; top:auto }
 .skip:focus{
   left:max(12px, env(safe-area-inset-left,0)); top:max(12px, env(safe-area-inset-top,0));
@@ -206,82 +243,29 @@ html[data-theme="dark"][data-colorblind="on"] .color::after{ mix-blend-mode:scre
   #pbFill{ background:var(--btn-primary-bg) }
 }
 
-/* ===== FABs tema-aware  ===== */
-/* Tokens específicos para los FAB */
-:root{
-  --fab-bg-light: #1f2729;         /* disco oscuro en tema claro */
-  --fab-fg-light: #eef8ff;
-  --fab-shadow-light: 0 10px 20px rgba(0,0,0,.18), 0 2px 4px rgba(0,0,0,.12);
-
-  --fab-bg-dark: var(--accent-2);  /* turquesa en tema oscuro */
-  --fab-fg-dark: #05232a;
-  --fab-shadow-dark: 0 8px 18px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.05) inset;
-
-  --fab-ring: var(--accent-2);
+/* Normalizar botones y anchors .btn */
+.btn{
+  display: block;            /* <a> y <button> misma caja */
+  width: 100%;
 }
 
-/* base: quitamos color fijo previo y usamos variables */
-.fab{
-  border:0; width:46px; height:46px; border-radius:50%;
-  display:grid; place-items:center; cursor:pointer; font-weight:900; font-size:1.1rem;
-  transition: transform .08s ease, filter .15s ease, box-shadow .15s ease, background-color .15s ease, color .15s ease;
-}
-.fab:hover{ transform: translateY(-1px); filter: brightness(1.04) }
-.fab:focus-visible{
-  outline: 3px solid var(--fab-ring);
-  outline-offset: 3px;
-}
+/* Asegurar colores también para <a> */
+a.btn.principal{  background: var(--btn-primary-bg); color: var(--btn-primary-fg); }
+a.btn.secundario{ background: var(--btn-sec-bg);     color: var(--btn-sec-fg); }
 
-/* modo Claro */
-html[data-theme="light"] .fab{
-  background: var(--fab-bg-light);
-  color: var(--fab-fg-light);
-  box-shadow: var(--fab-shadow-light);
-  text-shadow: 0 1px 0 rgba(0,0,0,.35); /* mejora legibilidad del ? */
-}
-
-/* modo Oscuro */
-html[data-theme="dark"] .fab{
-  background: var(--fab-bg-dark);
-  color: var(--fab-fg-dark);
-  box-shadow: var(--fab-shadow-dark);
-  text-shadow: none;
-}
-
-/* estado “activo”/presionado (ej. sonido on/off) muestra ring extra */
-.fab[aria-pressed="true"]{
-  box-shadow:
-    0 0 0 3px var(--fab-ring),
-    0 8px 18px rgba(0,0,0,.35);
-}
-
-/* accesibilidad: alto contraste incrementa el ring */
-@media (prefers-contrast: more){
-  .fab:focus-visible{ outline-width:4px }
-  .fab[aria-pressed="true"]{ box-shadow: 0 0 0 4px var(--fab-ring) }
-}
-
-/* ===== FABs compactos en móvil cuando se está jugando ===== */
-@media (max-width: 640px){
-  body.fab-compact .fab-stack{ right:8px; top:8px; gap:10px; }
-  body.fab-compact .fab{ width:38px; height:38px; box-shadow:0 6px 14px rgba(0,0,0,.18); opacity:.85; }
-  body.fab-compact .fab:hover,
-  body.fab-compact .fab:focus-visible{ opacity:1; }
-}
-
-/* Enlaces con clase .btn se ven como botón, sin subrayado */
-a.btn,
-a.btn:link,
-a.btn:visited,
-a.btn:hover,
-a.btn:focus,
-a.btn:active{
+/* Evitar subrayado y estados raros en <a> */
+a.btn, a.btn:link, a.btn:visited, a.btn:hover, a.btn:focus, a.btn:active{
   text-decoration: none;
-  color: inherit;        /* usa el color del botón */
+  color: inherit;
 }
 
-/* (opcional) Safari iOS a veces fuerza subrayado en visitados */
-.control--actions a.btn{ text-decoration: none; }
+/* iOS/Safari a veces mantiene apariencia nativa */
+button.btn, a.btn{
+  -webkit-appearance: none;
+  appearance: none;
+}
 
-
-.control--actions > a.btn{ text-decoration: none !important; }
+/* Respetar SIEMPRE el atributo [hidden] */
+[hidden]{
+  display: none !important;
+}

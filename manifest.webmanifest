@@ -1,0 +1,14 @@
+{
+  "name": "FALLTEM — Secuencia de colores",
+  "short_name": "Secuencias",
+  "description": "Juego cognitivo accesible tipo Simón: repetí la secuencia de colores.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0e0e0e",
+  "theme_color": "#0e0e0e",
+  "icons": [
+    { "src": "./images/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./images/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

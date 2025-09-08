@@ -8,11 +8,11 @@
   <meta name="color-scheme" content="dark light"/>
   <meta name="referrer" content="strict-origin-when-cross-origin"/>
 
-  <!-- CSP -->
+  <!-- CSP estricta (sin 'unsafe-inline') -->
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self';
-                 script-src 'self' 'unsafe-inline';
-                 style-src 'self' 'unsafe-inline';
+                 script-src 'self';
+                 style-src 'self';
                  font-src 'self';
                  img-src 'self' data:;
                  media-src 'self';
@@ -22,11 +22,20 @@
                  form-action 'none'">
 
   <title>Secuencia de colores — Juegos Cognitivos</title>
-  <link rel="stylesheet" href="./styles.css?v=5.1">
+
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./images/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="./images/icon-192.png">
+
+  <link rel="stylesheet" href="./styles.css?v=5.4">
 </head>
 
 <body>
   <a href="#juego" class="skip">Saltar directamente al juego</a>
+
+  <!-- Región para anuncios accesibles (screen readers) -->
+  <div id="sr-updates" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
 
   <!-- FABs -->
   <div class="fab-stack">
@@ -105,6 +114,7 @@
         <div class="control control--actions">
           <button id="btnComenzar" class="btn principal" type="button">Comenzar</button>
           <button id="btnReiniciar" class="btn secundario" type="button" hidden>Volver a jugar</button>
+          <a id="btnOtroJuego" class="btn secundario" href="https://falltem.org/juegos/#games-cards" target="_blank" rel="noopener" hidden>Elegir otro juego</a>
           <button id="cbToggle" class="btn secundario" type="button" aria-pressed="false">Modo daltónico</button>
         </div>
       </section>
@@ -143,6 +153,6 @@
   <audio id="sndBad" preload="auto" src="./sounds/wrong-answer.mp3"></audio>
 
   <noscript><p style="margin:1rem">Este juego necesita JavaScript para funcionar.</p></noscript>
-  <script src="./app.js?v=5.1" defer></script>
+  <script src="./app.js?v=5.4" defer></script>
 </body>
 </html>

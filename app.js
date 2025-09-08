@@ -1,13 +1,14 @@
 'use strict';
 
 document.addEventListener('DOMContentLoaded', () => {
-  const VERSION = "v5.3 (FAB compacto + modal usable + CTA 'Elegir otro juego')";
+  const VERSION = "v5.5 (visibilidad inicial fija + theme init fix)";
   const versionEl = document.getElementById('versionLabel');
   if (versionEl) versionEl.textContent = VERSION;
 
   /* ===== Refs ===== */
   const btnComenzar   = document.getElementById('btnComenzar');
   const btnReiniciar  = document.getElementById('btnReiniciar');
+  const btnOtroJuego  = document.getElementById('btnOtroJuego');
 
   const themeBtn      = document.getElementById('themeToggle');   // FAB 🌙/🌞
   const aboutBtn      = document.getElementById('aboutBtn');      // FAB ?
@@ -29,8 +30,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const pbFill        = document.getElementById('pbFill');
   const mensajeEl     = document.getElementById('mensaje');
 
-  // Contenedor de acciones para inyectar el link "Elegir otro juego"
-  const actionsBox    = document.querySelector('.control--actions');
+  // ARIA live announcer
+  const srUpdates     = document.getElementById('sr-updates');
+  const announce      = (msg) => { if (srUpdates) srUpdates.textContent = msg; };
 
   // Sonidos
   const sndOk  = document.getElementById('sndOk');
@@ -52,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let soundOn = true;
   try { soundOn = (localStorage.getItem('soundOn') !== '0'); } catch {}
 
-  /* ===== Helpers ===== */
+  /* ===== Utils ===== */
   function updateSoundButton(){
     if (!soundBtn) return;
     soundBtn.textContent = soundOn ? '🔊' : '🔇';
@@ -97,9 +99,29 @@ document.addEventListener('DOMContentLoaded', () => {
       themeBtn.setAttribute('aria-label', m==='dark' ? 'Usar modo claro' : 'Usar modo oscuro');
       themeBtn.textContent = (m==='dark') ? '🌞' : '🌙';
     }
-    const metaTheme = document.querySelector('meta[name="theme-color"]');
-    metaTheme?.setAttribute('content', m==='dark' ? '#0e0e0e' : '#f8fbf4');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', m==='dark' ? '#0e0e0e' : '#f8fbf4');
   }
+
+  // INIT THEME (fix de matchMedia + escucha cambios)
+  (function initTheme(){
+    let mode = 'light';
+    try{
+      const stored = localStorage.getItem('theme');
+      if (stored === 'light' || stored === 'dark') {
+        mode = stored;
+      } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        mode = 'dark';
+      }
+    }catch{}
+    applyTheme(mode);
+    // Si no hay preferencia guardada, escuchamos cambios del SO
+    try {
+      if (!localStorage.getItem('theme') && window.matchMedia) {
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        mq.addEventListener?.('change', (e) => applyTheme(e.matches ? 'dark' : 'light'));
+      }
+    } catch {}
+  })();
 
   function cargarPreferencias(){
     try{
@@ -110,11 +132,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const m=Number(localStorage.getItem('seq_mejor')||0);
       mejor = isNaN(m)?0:m;
       setTexto(mejorEl, mejor);
-
-      const themeStored = localStorage.getItem('theme');
-      applyTheme(themeStored==='dark' ? 'dark' : 'light');
     }catch{}
     updateSoundButton();
+
+    // 🔒 Visibilidad inicial: SOLO "Comenzar" visible
+    if (btnComenzar)  btnComenzar.hidden  = false;
+    if (btnReiniciar) btnReiniciar.hidden = true;
+    if (btnOtroJuego) btnOtroJuego.hidden = true;
   }
 
   /* ===== FAB compacto móvil ===== */
@@ -162,25 +186,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', tryUnlockAudio, { once:true });
   document.addEventListener('keydown', tryUnlockAudio, { once:true });
 
-  /* ===== Link "Elegir otro juego" (inyectado) ===== */
-  let linkOtroJuego = null;
-  function ensureOtroJuegoButton(){
-    if (linkOtroJuego || !actionsBox) return;
-    linkOtroJuego = document.createElement('a');
-    linkOtroJuego.id = 'btnOtroJuego';
-    linkOtroJuego.href = 'https://falltem.org/juegos/#games-cards';
-    linkOtroJuego.target = '_blank';
-    linkOtroJuego.rel = 'noopener';
-    linkOtroJuego.className = 'btn secundario';
-    linkOtroJuego.textContent = 'Elegir otro juego';
-    linkOtroJuego.style.display = 'none'; // oculto por defecto
-    actionsBox.appendChild(linkOtroJuego);
-  }
-  function showOtroJuego(show){
-    if (!linkOtroJuego) return;
-    linkOtroJuego.style.display = show ? '' : 'none';
-  }
-
   /* ===== Reproducción ===== */
   async function iluminar(color){
     const btn = el(`.color.${color}`); if (!btn) return;
@@ -193,10 +198,12 @@ document.addEventListener('DOMContentLoaded', () => {
     puedeJugar = false;
     tablero?.setAttribute('aria-busy','true');
     setTexto(mensajeEl, 'Observá la secuencia…');
+    announce(`Mostrando secuencia, nivel ${nivel}.`);
     for (const c of secuencia){ await iluminar(c); }
     tablero?.removeAttribute('aria-busy');
     puedeJugar = true;
     setTexto(mensajeEl, 'Tu turno. Repetí la secuencia.');
+    announce('Tu turno. Repetí la secuencia.');
   }
   function actualizarUI(){
     setTexto(nivelEl, nivel);
@@ -212,17 +219,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const previo = secuencia.length ? secuencia[secuencia.length - 1] : null;
     secuencia.push(pickNextColor(previo));
     actualizarUI();
+    announce(`Nivel ${nivel}. Preparando nueva secuencia.`);
     await delay(600); await reproducirSecuencia();
   }
   function finDePartida(){
     puedeJugar = false;
     setTexto(mensajeEl, `❌ Error. Alcanzaste el nivel ${nivel}.`);
+    announce(`Fin de partida. Nivel alcanzado ${nivel}.`);
     playSound(sndBad);
     if (navigator.vibrate) navigator.vibrate([120,60,120]);
-    btnReiniciar && (btnReiniciar.hidden = false);
-    btnComenzar  && (btnComenzar.hidden  = true);
+    if (btnReiniciar) btnReiniciar.hidden = false;
+    if (btnComenzar)  btnComenzar.hidden  = true;
+    if (btnOtroJuego) btnOtroJuego.hidden = false;
     setFabCompact(false);     // restaurar FABs
-    showOtroJuego(true);      // mostrar CTA "Elegir otro juego"
   }
   function victoriaParcial(){
     if (nivel > mejor){
@@ -230,6 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try{ localStorage.setItem('seq_mejor', String(mejor)); }catch{}
     }
     setTexto(mensajeEl, '✅ ¡Bien! Nueva ronda…');
+    announce(`Correcto. Avanzás al nivel ${nivel + 1}.`);
     if (navigator.vibrate) navigator.vibrate(40);
 
     let avanzado = false;
@@ -271,10 +281,11 @@ document.addEventListener('DOMContentLoaded', () => {
   async function comenzar(){
     secuencia = []; idxJugador = 0; nivel = 0;
     setTexto(mensajeEl,''); pbFill && (pbFill.style.width = '0%');
-    btnComenzar && (btnComenzar.hidden = true);
-    btnReiniciar && (btnReiniciar.hidden = true);
 
-    showOtroJuego(false); // ocultar CTA al iniciar
+    if (btnComenzar)  btnComenzar.hidden  = true;
+    if (btnReiniciar) btnReiniciar.hidden = true;
+    if (btnOtroJuego) btnOtroJuego.hidden = true;
+
     setFabCompact(true);  // compactar FABs al empezar (móvil)
 
     await delay(300);
@@ -290,7 +301,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!soundOn) stopAllSounds();
   });
 
-  /* ===== Preferencias ===== */
   selVel?.addEventListener('change', ()=> setVelocidad(selVel.value));
   cargarPreferencias();
 
@@ -301,9 +311,17 @@ document.addEventListener('DOMContentLoaded', () => {
     applyTheme(next);
   });
 
-  ensureOtroJuegoButton(); // crea el anchor una sola vez
+  // PWA: registrar service worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+    });
+  }
 
-  actualizarUI();
+  updateSoundButton();
+  announce('Listo. Elegí la velocidad y presioná Comenzar.');
+  // Estado visual
+  (function actualizarUIInicial(){ setTexto(nivelEl, 0); setTexto(pasoEl, 0); setTexto(pasosTotalEl, 0); })();
 });
 
 /* ===== Modo daltónico (toggle + persistencia) ===== */
