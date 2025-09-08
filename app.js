@@ -1,7 +1,7 @@
 'use strict';
 
 document.addEventListener('DOMContentLoaded', () => {
-  const VERSION = "v5.2 (UI simple + FABs + modal usable + FAB compacto móvil)";
+  const VERSION = "v5.3 (FAB compacto + modal usable + CTA 'Elegir otro juego')";
   const versionEl = document.getElementById('versionLabel');
   if (versionEl) versionEl.textContent = VERSION;
 
@@ -29,6 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const pbFill        = document.getElementById('pbFill');
   const mensajeEl     = document.getElementById('mensaje');
 
+  // Contenedor de acciones para inyectar el link "Elegir otro juego"
+  const actionsBox    = document.querySelector('.control--actions');
+
+  // Sonidos
   const sndOk  = document.getElementById('sndOk');
   const sndBad = document.getElementById('sndBad');
   if (sndOk)  sndOk.volume  = 0.5;
@@ -158,6 +162,25 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', tryUnlockAudio, { once:true });
   document.addEventListener('keydown', tryUnlockAudio, { once:true });
 
+  /* ===== Link "Elegir otro juego" (inyectado) ===== */
+  let linkOtroJuego = null;
+  function ensureOtroJuegoButton(){
+    if (linkOtroJuego || !actionsBox) return;
+    linkOtroJuego = document.createElement('a');
+    linkOtroJuego.id = 'btnOtroJuego';
+    linkOtroJuego.href = 'https://falltem.org/juegos/#games-cards';
+    linkOtroJuego.target = '_blank';
+    linkOtroJuego.rel = 'noopener';
+    linkOtroJuego.className = 'btn secundario';
+    linkOtroJuego.textContent = 'Elegir otro juego';
+    linkOtroJuego.style.display = 'none'; // oculto por defecto
+    actionsBox.appendChild(linkOtroJuego);
+  }
+  function showOtroJuego(show){
+    if (!linkOtroJuego) return;
+    linkOtroJuego.style.display = show ? '' : 'none';
+  }
+
   /* ===== Reproducción ===== */
   async function iluminar(color){
     const btn = el(`.color.${color}`); if (!btn) return;
@@ -198,7 +221,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (navigator.vibrate) navigator.vibrate([120,60,120]);
     btnReiniciar && (btnReiniciar.hidden = false);
     btnComenzar  && (btnComenzar.hidden  = true);
-    setFabCompact(false); // ← restaurar FABs
+    setFabCompact(false);     // restaurar FABs
+    showOtroJuego(true);      // mostrar CTA "Elegir otro juego"
   }
   function victoriaParcial(){
     if (nivel > mejor){
@@ -250,7 +274,8 @@ document.addEventListener('DOMContentLoaded', () => {
     btnComenzar && (btnComenzar.hidden = true);
     btnReiniciar && (btnReiniciar.hidden = true);
 
-    setFabCompact(true); // ← compactar FABs al empezar (móvil)
+    showOtroJuego(false); // ocultar CTA al iniciar
+    setFabCompact(true);  // compactar FABs al empezar (móvil)
 
     await delay(300);
     await nuevoNivel();
@@ -275,6 +300,8 @@ document.addEventListener('DOMContentLoaded', () => {
     try { localStorage.setItem('theme', next); } catch {}
     applyTheme(next);
   });
+
+  ensureOtroJuegoButton(); // crea el anchor una sola vez
 
   actualizarUI();
 });

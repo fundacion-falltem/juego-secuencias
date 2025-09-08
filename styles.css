@@ -263,20 +263,25 @@ html[data-theme="dark"] .fab{
 
 /* ===== FABs compactos en móvil cuando se está jugando ===== */
 @media (max-width: 640px){
-  body.fab-compact .fab-stack{
-    right: 8px;
-    top: 8px;
-    gap: 10px;
-  }
-  body.fab-compact .fab{
-    width: 38px;
-    height: 38px;
-    box-shadow: 0 6px 14px rgba(0,0,0,.18);
-    opacity: .85;                 /* un poco más discretos */
-  }
+  body.fab-compact .fab-stack{ right:8px; top:8px; gap:10px; }
+  body.fab-compact .fab{ width:38px; height:38px; box-shadow:0 6px 14px rgba(0,0,0,.18); opacity:.85; }
   body.fab-compact .fab:hover,
-  body.fab-compact .fab:focus-visible{
-    opacity: 1;
-  }
+  body.fab-compact .fab:focus-visible{ opacity:1; }
 }
 
+/* Enlaces con clase .btn se ven como botón, sin subrayado */
+a.btn,
+a.btn:link,
+a.btn:visited,
+a.btn:hover,
+a.btn:focus,
+a.btn:active{
+  text-decoration: none;
+  color: inherit;        /* usa el color del botón */
+}
+
+/* (opcional) Safari iOS a veces fuerza subrayado en visitados */
+.control--actions a.btn{ text-decoration: none; }
+
+
+.control--actions > a.btn{ text-decoration: none !important; }
